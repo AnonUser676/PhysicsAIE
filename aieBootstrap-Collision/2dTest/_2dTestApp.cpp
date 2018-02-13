@@ -20,7 +20,7 @@ _2dTestApp::~_2dTestApp() {
 bool _2dTestApp::startup() {
 	
 	//increase the 2d line count to maximize the number of objects we can draw
-	aie::Gizmos::create(255U, 255U, 65535U, 65535U);
+	aie::Gizmos::create(255U, 255U, 65535U, 6553500U);
 
 	m_2dRenderer = new aie::Renderer2D();
 
@@ -64,15 +64,23 @@ bool _2dTestApp::startup() {
 	//ball2->applyForce(vec2(30, 0));
 
 	
-	wall = new Plane(vec2 (1,1),0);
-	rocket = new Sphere(vec2(0, 50), vec2(0, -5), 100, 8, vec4(0, 1, 1, 1));
+	wall = new Plane(normalize(vec2 (1,1)),-20);
+	wall2 = new Plane(normalize(vec2(-1, 1)), -20);
+	ball1 = new Sphere(vec2(-30,25),vec2(20,0),170,3, vec4(0, 1, 1, 1));
+	ball2 = new Sphere(vec2(30, 25), vec2(0, 0), 160, 3, vec4(0, 1, 1, 1));
+	//rocket = new Sphere(vec2(0, 50), vec2(0, -5), 100, 8, vec4(0, 1, 1, 1));
 	UFO = new Sphere(vec2(0, 30), vec2(0,0), 0.5f, 10, vec4(1, 1, 0, 1));
-	square = new Box(vec2(0, 0), 10, 30, vec2(0, 0), 0.00001f, vec4(0, 1, 1, 1));
-	m_physicsScene->addActor(rocket);
- 	m_physicsScene->addActor(wall);
+	square = new Box(vec2(0, 0), 5, 15, vec2(0, 0), 10.0f, vec4(0, 1, 1, 1));
+	box = new Box(vec2(-20, 40), 5, 5, vec2(0, -10), 10.0f, vec4(1, 0.32f, 1, 1));
+	//m_physicsScene->addActor(rocket);
+	m_physicsScene->addActor(ball1);
+	m_physicsScene->addActor(ball2);
+	m_physicsScene->addActor(wall);
+	m_physicsScene->addActor(wall2);
 	m_physicsScene->addActor(UFO);
 	m_physicsScene->addActor(square);
-
+	m_physicsScene->addActor(box);
+		
 	return true;
 }
 
@@ -111,6 +119,8 @@ void _2dTestApp::update(float deltaTime) {
 
 	if (input->isKeyDown(INPUT_KEY_RIGHT))
 		rocket->applyForce(vec2(100.f, 0));
+
+	cout << m_physicsScene->actorCounter() << endl;
 	
 	m_physicsScene->update(deltaTime);
 	m_physicsScene->updateGizmos();

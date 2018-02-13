@@ -14,6 +14,7 @@ public:
 
 	void setMass(float mass) { m_mass = mass; }
 	void setVelocity(vec2 velocity) { m_velocity = velocity; }
+	void resolveCollision(Rigidbody* actor2);
 
 	//virtual bool checkCollision(PhysicsObject* pOther) = 0;
 

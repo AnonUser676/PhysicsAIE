@@ -22,7 +22,7 @@ Sphere::~Sphere()
 
 void Sphere::makeGizmo()
 {
-	Gizmos::add2DCircle(m_position, m_radius, 30, m_color);
+	Gizmos::add2DCircle(m_position, m_radius, 36, m_color);
 }
 
 //bool Sphere::checkCollision(PhysicsObject* pOther)

@@ -1,6 +1,7 @@
 #pragma once
 #include "PhysicsObject.h"
 #include <Gizmos.h>
+#include "Rigidbody.h"
 
 using namespace glm;
 using namespace aie;
@@ -16,6 +17,7 @@ public:
 	virtual void debug() {};
 	virtual void makeGizmo();
 	virtual void resetPosition();
+	vec2 resolveCollision(Rigidbody* actor2);
 
 	vec2 getNormal() { return m_normal; }
 	float getDistance() { return m_distancetoOrigin; }

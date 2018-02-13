@@ -12,8 +12,6 @@ public:
 
 	virtual void makeGizmo();
 
-	void setHeight(float height);
-	void setLength(float length);
 
 	float getHeight();
 	float getLength();

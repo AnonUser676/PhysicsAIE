@@ -45,6 +45,7 @@ public:
 	static bool box2Plane(PhysicsObject*, PhysicsObject*);
 	static bool box2Sphere(PhysicsObject*, PhysicsObject*);
 	static bool box2Box(PhysicsObject*, PhysicsObject*);
+	int actorCounter() { return m_actors.size(); }
 
 protected:
 	vec2 m_gravity;

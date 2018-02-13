@@ -23,9 +23,13 @@ public:
 	virtual void imgui();
 
 	Sphere* rocket;
+	Sphere* ball1;
+	Sphere* ball2;
 	Plane* wall;
 	Sphere* UFO;
 	Box* square;
+	Box* box;
+	Plane* wall2;
 
 protected:
 

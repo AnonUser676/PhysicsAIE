@@ -14,6 +14,19 @@ void Rigidbody::fixedUpdate(vec2 gravity, float timeStep)
 
 }
 
+void Rigidbody::resolveCollision(Rigidbody* actor2)
+{
+	vec2 normal = normalize(actor2->getPosition() - m_position);
+	vec2 relativeVelocity = actor2->getVelocity() - m_velocity;
+
+	float elasticity = 1;
+	float j = dot(-(1 + elasticity) * (relativeVelocity), normal) / dot(normal, normal*((1 / m_mass) + 1 / actor2->getMass()));
+
+	vec2 force = normal * j;
+
+	applyForceToActor(actor2, force);
+}
+
 void Rigidbody::debug(){}
 
 void Rigidbody::applyForce(vec2 force)
