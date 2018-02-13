@@ -219,10 +219,14 @@ bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 	if (plane != nullptr && box != nullptr)
 	{
 		vec2 normal = plane->getNormal();
-		vec2 boxBL = box->getPosition();
-		vec2 boxBR = box->getPosition() + vec2(box->getLength(), 0);
-		vec2 boxTL = box->getPosition() + vec2(0, box->getHeight());
-		vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
+		//vec2 boxBL = box->getPosition();
+		//vec2 boxBR = box->getPosition() + vec2(box->getLength(), 0);
+		//vec2 boxTL = box->getPosition() + vec2(0, box->getHeight());
+		//vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
+		vec2 boxBL = box->getPosition() - vec2(box->getHeight(), box->getLength());
+		vec2 boxBR = box->getPosition() + vec2(box->getHeight(), -1.0f*(box->getLength()));
+		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getHeight()), box->getLength());
+		vec2 boxTR = box->getPosition() + vec2(box->getHeight(), box->getLength());
 
 		if (dot(normal, boxBL) - plane->getDistance() < 0 ||
 			dot(normal, boxBR) - plane->getDistance() < 0 ||
@@ -272,10 +276,10 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 	if (box != nullptr && plane != nullptr)
 	{
 		vec2 normal = plane->getNormal();
-		vec2 boxBL = box->getPosition();
-		vec2 boxBR = box->getPosition() + vec2(box->getLength(), 0);
-		vec2 boxTL = box->getPosition() + vec2(0, box->getHeight());
-		vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
+		vec2 boxBL = box->getPosition() - vec2(box->getHeight(), box->getLength());
+		vec2 boxBR = box->getPosition() + vec2(box->getHeight(), -1.0f*(box->getLength()));
+		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getHeight()), box->getLength());
+		vec2 boxTR = box->getPosition() + vec2(box->getHeight(), box->getLength());
 
 		if (dot(normal, boxBL) - plane->getDistance() < 0 ||
 			dot(normal, boxBR) - plane->getDistance() < 0 ||

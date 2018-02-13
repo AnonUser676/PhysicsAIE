@@ -29,7 +29,7 @@ bool _2dTestApp::startup() {
 	m_font = new aie::Font("../bin/font/consolas.ttf", 32);
 
 	m_physicsScene = new PhysicsScene();
-	m_physicsScene->setGravity(vec2(0, 0));
+	m_physicsScene->setGravity(vec2(0, -10));
 	m_physicsScene->setTimeStep(0.005f);
 
 	/*m_ContinousDemo = new setupContinuousDemo();
