@@ -140,8 +140,21 @@ bool PhysicsScene::sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 
 		float combinedRadius = (sphere1->getRadius() + sphere2->getRadius()) * (sphere1->getRadius() + sphere2->getRadius());
 
+		float sphere1Mass = sphere1->getMass();
+		float sphere2Mass = sphere2->getMass();
+
+		float sphereReaction = sphere1Mass / (sphere1Mass + sphere2Mass);
+
+		vec2 positionSphere1 = sphere1->getPosition();
+		vec2 positionSphere2 = sphere1->getPosition();
+		positionSphere1 += (normalize(distance) * sphereReaction);
+
+		//sphere1->setPos(position);
+
+
 		if (distance <= combinedRadius)
 		{
+			sphere1->setPos(positionSphere1);
 			sphere1->resolveCollision(sphere2);
 			cout << "Collided" << endl;
 			
@@ -167,12 +180,16 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 			sphereToPlane *= -1;
 		}
 		sphere->getRadius();
+		
 		float intersection = sphere->getRadius() - sphereToPlane;
+		vec2 position = sphere->getPosition();
+		position += intersection;
 
 		if (intersection > 0)
 		{
 			cout << "collided" << endl;
 			vec2 force = plane->resolveCollision(sphere);
+			sphere->setPos(position);
 			sphere->applyForce(force);
 
 			return true;
@@ -197,12 +214,16 @@ bool PhysicsScene::plane2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			sphereToPlane *= 1;
 		}
 		sphere->getRadius();
-		float intersection = sphere->getRadius() - sphereToPlane;
 		
+		float intersection = sphere->getRadius() - sphereToPlane;
+		vec2 position = sphere->getPosition();
+		position += intersection;
+
 		if (intersection > 0)
 		{
 			cout << "collided" << endl;
 			vec2 force = plane->resolveCollision(sphere);
+			sphere->setPos(position);
 			sphere->applyForce(force);
 			
 			return true;

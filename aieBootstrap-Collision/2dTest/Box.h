@@ -7,7 +7,7 @@ using namespace aie;
 class Box : public Rigidbody
 {
 public:
-	Box(vec2 position, float length, float height, vec2 velocity, float mass, vec4 color);
+	Box(vec2 position, float length, float height, vec2 velocity, float mass, float linearDrag, float angularDrag, float elasticity, vec4 color);
 	~Box();
 
 	virtual void makeGizmo();

@@ -1,6 +1,6 @@
 #include "Box.h"
 
-Box::Box(vec2 position, float length, float height, vec2 velocity, float mass, vec4 color):Rigidbody(BOX,position,velocity,0,mass)
+Box::Box(vec2 position, float length, float height, vec2 velocity, float mass, float linearDrag, float angularDrag, float elasticity, vec4 color):Rigidbody(BOX,position,velocity,0,mass, linearDrag, angularDrag, elasticity)
 {
 	m_position = position;
 	m_velocity = velocity;
@@ -8,6 +8,9 @@ Box::Box(vec2 position, float length, float height, vec2 velocity, float mass, v
 	m_height = height;
 	m_mass = mass;
 	m_colors = color;
+	m_angularDrag = angularDrag;
+	m_linearDrag = linearDrag;
+	m_elasticity = elasticity;
 }
 
 Box::~Box()

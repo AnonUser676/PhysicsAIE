@@ -29,7 +29,7 @@ bool _2dTestApp::startup() {
 	m_font = new aie::Font("../bin/font/consolas.ttf", 32);
 
 	m_physicsScene = new PhysicsScene();
-	m_physicsScene->setGravity(vec2(0, -10));
+	m_physicsScene->setGravity(vec2(0, -10.0f));
 	m_physicsScene->setTimeStep(0.005f);
 
 	/*m_ContinousDemo = new setupContinuousDemo();
@@ -64,22 +64,22 @@ bool _2dTestApp::startup() {
 	//ball2->applyForce(vec2(30, 0));
 
 	
-	wall = new Plane(normalize(vec2 (1,1)),-20);
-	wall2 = new Plane(normalize(vec2(-1, 1)), -20);
-	ball1 = new Sphere(vec2(-30,25),vec2(20,0),170,3, vec4(0, 1, 1, 1));
-	ball2 = new Sphere(vec2(30, 25), vec2(0, 0), 160, 3, vec4(0, 1, 1, 1));
+	wall = new Plane(vec2 (0,1),-20);
+	wall2 = new Plane(vec2(-1, 1), -20);
+	ball1 = new Sphere(vec2(-30,25),vec2(20,0),170,3, 0.5f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
+	ball2 = new Sphere(vec2(30, 25), vec2(0, 0), 160, 3, 0.3f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
 	//rocket = new Sphere(vec2(0, 50), vec2(0, -5), 100, 8, vec4(0, 1, 1, 1));
-	UFO = new Sphere(vec2(0, 30), vec2(0,0), 0.5f, 10, vec4(1, 1, 0, 1));
-	square = new Box(vec2(0, 0), 5, 15, vec2(0, 0), 10.0f, vec4(0, 1, 1, 1));
-	box = new Box(vec2(-20, 40), 5, 5, vec2(0, -10), 10.0f, vec4(1, 0.32f, 1, 1));
+	UFO = new Sphere(vec2(0, 30), vec2(0,0), 0.5f, 10, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
+	square = new Box(vec2(0, 0), 5, 15, vec2(0, 0), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 1, 1));
+	box = new Box(vec2(-20, 40), 5, 5, vec2(0, -10), 10.0f, 0.1f, 0.1f, 0.99f, vec4(1, 0.32f, 1, 1));
 	//m_physicsScene->addActor(rocket);
 	m_physicsScene->addActor(ball1);
 	m_physicsScene->addActor(ball2);
 	m_physicsScene->addActor(wall);
 	m_physicsScene->addActor(wall2);
 	m_physicsScene->addActor(UFO);
-	m_physicsScene->addActor(square);
-	m_physicsScene->addActor(box);
+	//m_physicsScene->addActor(square);
+	//m_physicsScene->addActor(box);
 		
 	return true;
 }
@@ -102,7 +102,7 @@ void _2dTestApp::update(float deltaTime) {
 	
 	if (Timer > 0.1f)
 	{
-		if (input->isKeyDown(INPUT_KEY_SPACE) && rocket->getMass() > 0.0f)
+		/*if (input->isKeyDown(INPUT_KEY_SPACE) && rocket->getMass() > 0.0f)
 		{
 			Sphere* gas;
 			gas = new Sphere((rocket->getPosition() - vec2(0, 12.0f)), vec2(0, 0.0f), 1.0f, 3, vec4(0.38f, 0.12f, 0.5f, 1));
@@ -110,7 +110,7 @@ void _2dTestApp::update(float deltaTime) {
 			rocket->setMass(rocket->getMass() - gas->getMass());
 
 			gas->applyForceToActor(rocket, vec2(0, 100.0f));
-		}
+		}*/
 		Timer = 0;
 	}
 

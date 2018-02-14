@@ -7,8 +7,8 @@ using namespace aie;
 class Sphere : public Rigidbody
 {
 public:
-	Sphere(vec2 position, vec2 velocity, float mass, float radius, vec4 color);
-	Sphere(vec2 startPos, float inclination, float speed, float mass, float radius, vec4 color);
+	Sphere(vec2 position, vec2 velocity, float mass, float radius, float linearDrag, float angularDrag, float elasticity, vec4 color);
+	Sphere(vec2 startPos, float inclination, float speed, float mass, float radius, float linearDrag, float angularDrag, float elasticity, vec4 color);
 	~Sphere();
 
 

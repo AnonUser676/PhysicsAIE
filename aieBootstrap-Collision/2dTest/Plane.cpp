@@ -10,7 +10,7 @@ Plane::Plane(): PhysicsObject(PLANE)
 
 Plane::Plane(vec2 normal, float distance) : Plane()
 {
-	m_normal = normal;
+	m_normal = normalize(normal);
 	m_distancetoOrigin = distance;
 }
 
