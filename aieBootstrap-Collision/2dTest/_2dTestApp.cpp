@@ -64,12 +64,12 @@ bool _2dTestApp::startup() {
 	//ball2->applyForce(vec2(30, 0));
 
 	
-	wall = new Plane(vec2 (0,1),-20);
-	wall2 = new Plane(vec2(-1, 1), -20);
-	ball1 = new Sphere(vec2(-30,25),vec2(20,0),170,3, 0.5f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
-	ball2 = new Sphere(vec2(30, 25), vec2(0, 0), 160, 3, 0.3f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
+	wall = new Plane(vec2 (-1,1),-20);
+	wall2 = new Plane(vec2(1, 1), -20);
+	ball1 = new Sphere(vec2(-30,25),vec2(20,0),170.0f,3.0f, 0.5f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
+	ball2 = new Sphere(vec2(30, 25), vec2(0, 0), 160.0f, 3.0f, 0.3f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
 	//rocket = new Sphere(vec2(0, 50), vec2(0, -5), 100, 8, vec4(0, 1, 1, 1));
-	UFO = new Sphere(vec2(0, 30), vec2(0,0), 0.5f, 10, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
+	UFO = new Sphere(vec2(0, 30), vec2(0,0), 0.5f, 10.0f, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
 	square = new Box(vec2(0, 0), 5, 15, vec2(0, 0), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 1, 1));
 	box = new Box(vec2(-20, 40), 5, 5, vec2(0, -10), 10.0f, 0.1f, 0.1f, 0.99f, vec4(1, 0.32f, 1, 1));
 	//m_physicsScene->addActor(rocket);
