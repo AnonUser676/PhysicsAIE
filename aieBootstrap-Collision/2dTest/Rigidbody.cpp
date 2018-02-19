@@ -10,12 +10,16 @@ Rigidbody::Rigidbody(ShapeType shapeID, vec2 position, vec2 velocity, float rota
 	m_angularDrag = angularDrag;
 	m_angularVelocity = 0.01f;
 	m_elasticity = elasticity;
+	m_moment = 0;
 }
 
 Rigidbody::~Rigidbody(){}
 
 void Rigidbody::fixedUpdate(vec2 gravity, float timeStep)
 {
+	//if (m_isKinematic)
+	//	return;
+
 	m_velocity -= m_velocity * m_linearDrag * timeStep;
 	m_angularVelocity -= m_angularVelocity * m_angularDrag *timeStep;
 

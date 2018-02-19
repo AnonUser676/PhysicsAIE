@@ -13,6 +13,7 @@ public:
 	void applyForceToActor(Rigidbody* actor, vec2 force);
 
 	void setMass(float mass) { m_mass = mass; }
+	void setMoment(float moment) { m_moment = moment; }
 	void setVelocity(vec2 velocity) { m_velocity = velocity; }
 	void resolveCollision(Rigidbody* actor2);
 	void setPos(vec2 position) { m_position = position; }
@@ -26,6 +27,7 @@ public:
 	float getAngularDrag() { return m_angularDrag; }
 	float getAngularVelocity() { return m_angularVelocity; }
 	float getElasticity() { return m_elasticity; }
+	float getMoment() { return m_moment; }
 
 protected:
 	vec2 m_position;
@@ -36,5 +38,6 @@ protected:
 	float m_angularDrag;
 	float m_angularVelocity;
 	float m_elasticity;
+	float m_moment;
 };
 

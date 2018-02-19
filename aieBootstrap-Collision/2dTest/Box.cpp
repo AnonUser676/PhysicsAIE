@@ -8,6 +8,7 @@ Box::Box(vec2 position, float length, float height, vec2 velocity, float mass, f
 	m_height = height;
 	m_mass = mass;
 	m_colors = color;
+	m_moment = 1.0f / 12.0f * mass * length * height;;
 	m_angularDrag = angularDrag;
 	m_linearDrag = linearDrag;
 	m_elasticity = elasticity;

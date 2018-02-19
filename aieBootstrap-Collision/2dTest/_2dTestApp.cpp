@@ -78,8 +78,8 @@ bool _2dTestApp::startup() {
 	m_physicsScene->addActor(wall);
 	m_physicsScene->addActor(wall2);
 	m_physicsScene->addActor(UFO);
-	//m_physicsScene->addActor(square);
-	//m_physicsScene->addActor(box);
+	m_physicsScene->addActor(square);
+	m_physicsScene->addActor(box);
 		
 	return true;
 }

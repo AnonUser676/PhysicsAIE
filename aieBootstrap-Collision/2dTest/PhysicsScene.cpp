@@ -150,21 +150,16 @@ bool PhysicsScene::sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			float sphere1Mass = sphere1->getMass();
 			float sphere2Mass = sphere2->getMass();
 
-			float sphereReaction1 = abs(sphere1Mass / (sphere1Mass + sphere2Mass));
-			float shpereReaction2 = abs(sphere2Mass / (sphere1Mass + sphere2Mass));
+			float massCombo = sphere1Mass + sphere2Mass;
 
-			float correction = ((distance / (1 / sphere1Mass + 1 / sphere2Mass)) * percent);
+			vec2 correction= distance * percent * normalize(temp);
+			
+			vec2 sphere1Pos = sphere1->getPosition() + (sphere1Mass / massCombo) * normalize(temp) * (-1.0f * distance);
+			vec2 sphere2Pos = sphere2->getPosition() + (sphere2Mass/massCombo) * normalize(temp) * (-1.0f * distance);
 
-			vec2 velSphere1 = sphere1->getVelocity();
-			vec2 velSphere2 = sphere2->getVelocity();
-
-			sphere1->setPos(sphere1->getPosition() - (1 / sphere1Mass) * correction);
-			sphere2->setPos(sphere2->getPosition() + (1 / sphere1Mass) * correction);
-			//velSphere1 -= ((distance)) * sphereReaction1;
-			//velSphere2 -= ((distance)) * shpereReaction2;
-
-
-
+			sphere1->setPos(sphere1Pos);
+			sphere2->setPos(sphere2Pos);
+						
 			sphere1->resolveCollision(sphere2);
 			cout << "Collided" << endl;
 			
@@ -200,7 +195,7 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 			vec2 force = plane->resolveCollision(sphere);
 
 			vec2 position = sphere->getPosition();
-			position += (normalize(intersection) * collisionNormal);
+			position += (normalize(intersection) * (1/sphere->getMass()) * collisionNormal);
 
 			sphere->setPos(position);
 			sphere->applyForce(force);
@@ -236,7 +231,7 @@ bool PhysicsScene::plane2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			vec2 force = plane->resolveCollision(sphere);
 			
 			vec2 position = sphere->getPosition();
-			position += (normalize(intersection) * collisionNormal);
+			position += (normalize(intersection) * (1 / sphere->getMass()) * collisionNormal);
 
 			sphere->setPos(position);
 			sphere->applyForce(force);
@@ -259,10 +254,10 @@ bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 		//vec2 boxBR = box->getPosition() + vec2(box->getLength(), 0);
 		//vec2 boxTL = box->getPosition() + vec2(0, box->getHeight());
 		//vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
-		vec2 boxBL = box->getPosition() - vec2(box->getHeight(), box->getLength());
-		vec2 boxBR = box->getPosition() + vec2(box->getHeight(), -1.0f*(box->getLength()));
-		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getHeight()), box->getLength());
-		vec2 boxTR = box->getPosition() + vec2(box->getHeight(), box->getLength());
+		vec2 boxBL = box->getPosition() - vec2(box->getLength(), box->getHeight());
+		vec2 boxBR = box->getPosition() + vec2(box->getLength(), -1.0f*(box->getHeight()));
+		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getLength()), box->getHeight());
+		vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
 
 		if (dot(normal, boxBL) - plane->getDistance() < 0 ||
 			dot(normal, boxBR) - plane->getDistance() < 0 ||
@@ -312,10 +307,11 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 	if (box != nullptr && plane != nullptr)
 	{
 		vec2 normal = plane->getNormal();
-		vec2 boxBL = box->getPosition() - vec2(box->getHeight(), box->getLength());
-		vec2 boxBR = box->getPosition() + vec2(box->getHeight(), -1.0f*(box->getLength()));
-		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getHeight()), box->getLength());
-		vec2 boxTR = box->getPosition() + vec2(box->getHeight(), box->getLength());
+		vec2 boxBL = box->getPosition() - vec2(box->getLength(), box->getHeight());
+		vec2 boxBR = box->getPosition() + vec2(box->getLength(), -1.0f*(box->getHeight()));
+		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getLength()), box->getHeight());
+		vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
+
 
 		if (dot(normal, boxBL) - plane->getDistance() < 0 ||
 			dot(normal, boxBR) - plane->getDistance() < 0 ||

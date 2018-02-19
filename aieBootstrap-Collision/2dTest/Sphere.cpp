@@ -10,6 +10,7 @@ Sphere::Sphere(vec2 position, vec2 velocity, float mass, float radius, float lin
 	m_mass = mass;
 	m_linearDrag = linearDrag;
 	m_angularDrag = angularDrag;
+	m_moment = 0.5f * mass * radius * radius;
 	m_elasticity = elasticity;
 }
 
