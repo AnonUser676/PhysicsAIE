@@ -243,37 +243,17 @@ bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 		vec2 closest = normal;
 
-		float x_extent = ((box->getPosition().x + (box->getLength())) - (box->getPosition().x - (box->getLength())))*0.5;
-		float y_extent = ((box->getPosition().y + (box->getHeight())) - (box->getPosition().y - (box->getHeight())))*0.5;
+		vec2 max_extent = box->getPosition() + vec2(box->getLength(), box->getHeight());
+		vec2 min_extent = box->getPosition() - vec2(box->getLength(), box->getHeight());
 
-		closest.x = clamp(-x_extent, x_extent, closest.x);
-		closest.y = clamp(-y_extent, y_extent, closest.y);
-
-		if (normal == closest)
-		{
-			if (abs(normal.x) > abs(normal.y))
-			{
-				if (closest.x > 0)
-					closest.x = x_extent;
-				else
-					closest.x = -x_extent;
-			}
-
-			else
-			{
-				if (closest.y > 0)
-					closest.y = y_extent;
-				else
-					closest.y = -y_extent;
-			}
-		}
-
-		vec2 Normal = normal - closest;
-		float distance = Normal.length() * Normal.length();
+		closest = clamp(max_extent, min_extent, closest);
+				
+		float distance = closest.length() * closest.length();
 		float radius = sphere->getRadius();
 
 		if (distance < radius * radius)
 		{
+			cout << "Collided with box to Sphere" << endl;
 			box->resolveCollision(sphere);
 			return true;
 		}
@@ -287,48 +267,28 @@ bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 	Box *box = dynamic_cast<Box*> (obj1);
 	Sphere *sphere = dynamic_cast<Sphere*> (obj2);
 
-	if (box != nullptr && sphere != nullptr)
+	if (sphere != nullptr && box != nullptr)
 	{
 		vec2 normal = sphere->getPosition() - box->getPosition();
 
 		vec2 closest = normal;
-		
-		float x_extent = ((box->getPosition().x + (box->getLength())) - (box->getPosition().x - (box->getLength())))*0.5;
-		float y_extent = ((box->getPosition().y + (box->getHeight())) - (box->getPosition().y - (box->getHeight())))*0.5;
-		
-		closest.x = clamp(-x_extent, x_extent, closest.x);
-		closest.y = clamp(-y_extent, y_extent, closest.y);
 
-		if (normal == closest)
-		{
-			if (abs(normal.x) > abs(normal.y))
-			{
-				if (closest.x > 0)
-					closest.x = x_extent;
-				else
-					closest.x = -x_extent;
-			}
-		
-			else
-			{
-				if (closest.y > 0)
-					closest.y = y_extent;
-				else
-					closest.y = -y_extent;
-			}
-		}
+		vec2 max_extent = box->getPosition() + vec2(box->getLength(), box->getHeight());
+		vec2 min_extent = box->getPosition() - vec2(box->getLength(), box->getHeight());
 
-		vec2 Normal = normal - closest;
-		float distance = Normal.length() * Normal.length();
+		closest = clamp(max_extent, min_extent, closest);
+
+		float distance = closest.length() * closest.length();
 		float radius = sphere->getRadius();
 
 		if (distance < radius * radius)
 		{
+			cout << "Collided with box to Sphere" << endl;
 			box->resolveCollision(sphere);
 			return true;
 		}
-		
-		}
+
+	}
 	return false;
 }
 
