@@ -151,7 +151,7 @@ bool PhysicsScene::sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			sphere2->setPos(sphere2Pos);
 						
 			sphere1->resolveCollision(sphere2);
-			cout << "Collided" << endl;
+			//cout << "Collided" << endl;
 			
 			return true;
 		}
@@ -197,39 +197,8 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 }
 
 bool PhysicsScene::plane2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
-    {
-	Plane *plane = dynamic_cast<Plane*>(obj1);
-	Sphere * sphere = dynamic_cast<Sphere*> (obj2);
-
-	if (sphere != nullptr && plane != nullptr)
-	{
-		vec2 collisionNormal = plane->getNormal();
-		float sphereToPlane = dot(sphere->getPosition(), plane->getNormal()) - plane->getDistance();
-
-		if (sphereToPlane < 0)
-		{
-			collisionNormal *= -1;
-			sphereToPlane *= 1;
-		}
-		sphere->getRadius();
-		
-		float intersection = sphere->getRadius() - sphereToPlane;
-		
-		if (intersection > 0)
-		{
-			cout << "collided" << endl;
-			vec2 force = plane->resolveCollision(sphere);
-			
-			vec2 position = sphere->getPosition();
-			position += (intersection) * (1 / sphere->getMass()) * (collisionNormal);
-
-			sphere->setPos(position);
-			sphere->applyForce(force);
-			
-			return true;
-		}
-	}
-	return false;
+{
+	return sphere2Plane(obj2, obj1);
 }
 
 bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
@@ -246,14 +215,29 @@ bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 		vec2 max_extent = box->getPosition() + vec2(box->getLength(), box->getHeight());
 		vec2 min_extent = box->getPosition() - vec2(box->getLength(), box->getHeight());
 
-		closest = clamp(max_extent, min_extent, closest);
+		closest = clamp(max_extent, min_extent, sphere->getPosition());
 				
-		float distance = closest.length() * closest.length();
+		//float distance = closest.length() * closest.length();
+		vec2 distance = closest - sphere->getPosition();
 		float radius = sphere->getRadius();
 
-		if (distance < radius * radius)
+		float distanceMagnitude = dot(distance, distance);
+
+		if (distanceMagnitude < radius * radius)
 		{
 			cout << "Collided with box to Sphere" << endl;
+			
+			/*float overlap = (length(distance) + radius) - distanceMagnitude;
+
+			float totalMass = sphere->getMass() + box->getMass();
+
+			vec2 spherePos = sphere->getPosition() - normalize(normal) * (sphere->getMass() / totalMass) * overlap;
+			vec2 boxPos = box->getPosition() + normalize(normal) * (box->getMass() / totalMass) * overlap;
+
+			sphere->setPos(spherePos);
+			box->setPos(boxPos);*/
+
+			sphere->resolveCollision(box);
 			box->resolveCollision(sphere);
 			return true;
 		}
@@ -264,32 +248,7 @@ bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 {
-	Box *box = dynamic_cast<Box*> (obj1);
-	Sphere *sphere = dynamic_cast<Sphere*> (obj2);
-
-	if (sphere != nullptr && box != nullptr)
-	{
-		vec2 normal = sphere->getPosition() - box->getPosition();
-
-		vec2 closest = normal;
-
-		vec2 max_extent = box->getPosition() + vec2(box->getLength(), box->getHeight());
-		vec2 min_extent = box->getPosition() - vec2(box->getLength(), box->getHeight());
-
-		closest = clamp(max_extent, min_extent, closest);
-
-		float distance = closest.length() * closest.length();
-		float radius = sphere->getRadius();
-
-		if (distance < radius * radius)
-		{
-			cout << "Collided with box to Sphere" << endl;
-			box->resolveCollision(sphere);
-			return true;
-		}
-
-	}
-	return false;
+	return sphere2Box(obj2, obj1);
 }
 
 bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
@@ -341,50 +300,8 @@ bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 }
 
 bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
-                      {
-	Box *box = dynamic_cast<Box*> (obj1);
-	Plane *plane = dynamic_cast<Plane*> (obj2);
-
-	if (box != nullptr && plane != nullptr)
-	{
-		vec2 normal = plane->getNormal();
-		vec2 boxBL = box->getPosition() - vec2(box->getLength(), box->getHeight());
-		vec2 boxBR = box->getPosition() + vec2(box->getLength(), -1.0f*(box->getHeight()));
-		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getLength()), box->getHeight());
-		vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
-
-
-		if (dot(normal, boxBL) - plane->getDistance() < 0 ||
-			dot(normal, boxBR) - plane->getDistance() < 0 ||
-			dot(normal, boxTL) - plane->getDistance() < 0 ||
-			dot(normal, boxTR) - plane->getDistance() < 0)
-		{
-			if (dot(normal, boxBL) - plane->getDistance() < 0)
-				overlap = dot(normal, boxBL) - plane->getDistance();
-
-			else if (dot(normal, boxBR) - plane->getDistance() < 0)
-				overlap = dot(normal, boxBR) - plane->getDistance();
-
-			else if (dot(normal, boxTL) - plane->getDistance() < 0)
-				overlap = dot(normal, boxTL) - plane->getDistance();
-
-			else if (dot(normal, boxTR) - plane->getDistance() < 0)
-				overlap = dot(normal, boxTR) - plane->getDistance();
-
-
-			vec2 force = plane->resolveCollision(box);
-
-			vec2 position = box->getPosition();
-			position -= (overlap) * (0.5f) * (normal);
-
-			box->setPos(position);
-			box->applyForce(force);
-
-			return true;
-		}
-	}
-
-	return false;
+{
+	return plane2Box(obj2, obj1);
 }
 
 

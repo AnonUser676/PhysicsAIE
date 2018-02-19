@@ -30,6 +30,9 @@ public:
 	Box* square;
 	Box* box;
 	Plane* wall2;
+	Plane* wall3;
+	Plane* wall4;
+	Plane* wall5;
 
 protected:
 
