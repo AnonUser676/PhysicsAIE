@@ -3,6 +3,7 @@
 typedef bool(*fn)(PhysicsObject*, PhysicsObject*);
 
 vec2 clamping(const vec2 vector, const vec2 & min, const vec2 & max);
+float overlap = 0;
 
 static fn collisionFunctionArray[] =
 {
@@ -130,32 +131,21 @@ bool PhysicsScene::sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 
 	if (sphere1 != nullptr && sphere2 != nullptr)
 	{
-		vec2 temp;
-		temp.x = sphere1->getPosition().x - sphere2->getPosition().x;
-		temp.y = sphere1->getPosition().y - sphere2->getPosition().y;
+		vec2 displacement = sphere1->getPosition() - sphere2->getPosition();
 
-		float distance;
-		distance = sqrtf((temp.x * temp.x) + (temp.y * temp.y));
-		distance *= distance;
+		vec2 collNormal = normalize(displacement);
+		float distance = length(displacement);
 
-		float combinedRadius = (sphere1->getRadius() + sphere2->getRadius()) * (sphere1->getRadius() + sphere2->getRadius());
+		float combinedRadius = sphere1->getRadius() + sphere2->getRadius();
 				
-		//sphere1->setPos(position);
-
-		if (distance <= combinedRadius)
+		if (distance < combinedRadius)
 		{
-			
-			const float percent = 0.2;
+			float overlap = combinedRadius - distance;
 
-			float sphere1Mass = sphere1->getMass();
-			float sphere2Mass = sphere2->getMass();
+			float totalMass = sphere1->getMass() + sphere2->getMass();
 
-			float massCombo = sphere1Mass + sphere2Mass;
-
-			vec2 correction= distance * percent * normalize(temp);
-			
-			vec2 sphere1Pos = sphere1->getPosition() + (sphere1Mass / massCombo) * normalize(temp) * (-1.0f * distance);
-			vec2 sphere2Pos = sphere2->getPosition() + (sphere2Mass/massCombo) * normalize(temp) * (-1.0f * distance);
+			vec2 sphere1Pos = sphere1->getPosition() + collNormal * ( sphere2->getMass() / totalMass ) * overlap;
+			vec2 sphere2Pos = sphere2->getPosition() - collNormal * ( sphere1->getMass() / totalMass ) * overlap;
 
 			sphere1->setPos(sphere1Pos);
 			sphere2->setPos(sphere2Pos);
@@ -195,7 +185,7 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 			vec2 force = plane->resolveCollision(sphere);
 
 			vec2 position = sphere->getPosition();
-			position += (normalize(intersection) * (1/sphere->getMass()) * collisionNormal);
+			position += (intersection) * (1/sphere->getMass()) * (collisionNormal);
 
 			sphere->setPos(position);
 			sphere->applyForce(force);
@@ -231,7 +221,7 @@ bool PhysicsScene::plane2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			vec2 force = plane->resolveCollision(sphere);
 			
 			vec2 position = sphere->getPosition();
-			position += (normalize(intersection) * (1 / sphere->getMass()) * collisionNormal);
+			position += (intersection) * (1 / sphere->getMass()) * (collisionNormal);
 
 			sphere->setPos(position);
 			sphere->applyForce(force);
@@ -242,11 +232,111 @@ bool PhysicsScene::plane2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 	return false;
 }
 
+bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	Sphere *sphere = dynamic_cast<Sphere*> (obj1);
+	Box *box = dynamic_cast<Box*> (obj2);
+	
+	if (sphere != nullptr && box != nullptr)
+	{
+		vec2 normal = sphere->getPosition() - box->getPosition();
+
+		vec2 closest = normal;
+
+		float x_extent = ((box->getPosition().x + (box->getLength())) - (box->getPosition().x - (box->getLength())))*0.5;
+		float y_extent = ((box->getPosition().y + (box->getHeight())) - (box->getPosition().y - (box->getHeight())))*0.5;
+
+		closest.x = clamp(-x_extent, x_extent, closest.x);
+		closest.y = clamp(-y_extent, y_extent, closest.y);
+
+		if (normal == closest)
+		{
+			if (abs(normal.x) > abs(normal.y))
+			{
+				if (closest.x > 0)
+					closest.x = x_extent;
+				else
+					closest.x = -x_extent;
+			}
+
+			else
+			{
+				if (closest.y > 0)
+					closest.y = y_extent;
+				else
+					closest.y = -y_extent;
+			}
+		}
+
+		vec2 Normal = normal - closest;
+		float distance = Normal.length() * Normal.length();
+		float radius = sphere->getRadius();
+
+		if (distance < radius * radius)
+		{
+			box->resolveCollision(sphere);
+			return true;
+		}
+
+	}
+	return false;
+}
+
+bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	Box *box = dynamic_cast<Box*> (obj1);
+	Sphere *sphere = dynamic_cast<Sphere*> (obj2);
+
+	if (box != nullptr && sphere != nullptr)
+	{
+		vec2 normal = sphere->getPosition() - box->getPosition();
+
+		vec2 closest = normal;
+		
+		float x_extent = ((box->getPosition().x + (box->getLength())) - (box->getPosition().x - (box->getLength())))*0.5;
+		float y_extent = ((box->getPosition().y + (box->getHeight())) - (box->getPosition().y - (box->getHeight())))*0.5;
+		
+		closest.x = clamp(-x_extent, x_extent, closest.x);
+		closest.y = clamp(-y_extent, y_extent, closest.y);
+
+		if (normal == closest)
+		{
+			if (abs(normal.x) > abs(normal.y))
+			{
+				if (closest.x > 0)
+					closest.x = x_extent;
+				else
+					closest.x = -x_extent;
+			}
+		
+			else
+			{
+				if (closest.y > 0)
+					closest.y = y_extent;
+				else
+					closest.y = -y_extent;
+			}
+		}
+
+		vec2 Normal = normal - closest;
+		float distance = Normal.length() * Normal.length();
+		float radius = sphere->getRadius();
+
+		if (distance < radius * radius)
+		{
+			box->resolveCollision(sphere);
+			return true;
+		}
+		
+		}
+	return false;
+}
+
 bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 {
 	Plane *plane = dynamic_cast<Plane*> (obj1);
 	Box *box = dynamic_cast<Box*> (obj2);
-	
+
 	if (plane != nullptr && box != nullptr)
 	{
 		vec2 normal = plane->getNormal();
@@ -264,35 +354,26 @@ bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 			dot(normal, boxTL) - plane->getDistance() < 0 ||
 			dot(normal, boxTR) - plane->getDistance() < 0)
 		{
-			box->setVelocity(vec2(0, 0));
-			cout << "Collide Box to Plane" << endl;
-			return true;
-		}
-	}
-	return false;
-}
+			if (dot(normal, boxBL) - plane->getDistance() < 0)
+				overlap = dot(normal, boxBL) - plane->getDistance();
 
-bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
-{
-	Sphere *sphere = dynamic_cast<Sphere*> (obj1);
-	Box *box = dynamic_cast<Box*> (obj2);
-	
-	if (sphere != nullptr && box != nullptr)
-	{
-		vec2 boxColliderLT = box->getPosition() + vec2(box->getLength() / 2.0f, box->getHeight() / 2.0f);
-		vec2 boxColliderBR = boxColliderLT * -1.0f;
+			else if (dot(normal, boxBR) - plane->getDistance() < 0)
+				overlap = dot(normal, boxBR) - plane->getDistance();
 
-		vec2 pos = sphere->getPosition();
-		float rad = sphere->getRadius();
+			else if (dot(normal, boxTL) - plane->getDistance() < 0)
+				overlap = dot(normal, boxTL) - plane->getDistance();
 
-		vec2 pointA = clamping(pos, boxColliderBR, boxColliderLT);
-		vec2 V = pointA - pos;
+			else if (dot(normal, boxTR) - plane->getDistance() < 0)
+				overlap = dot(normal, boxTR) - plane->getDistance();
 
-		float VMag = (sqrtf((V.x * V.x) + (V.y * V.y)))*(sqrtf((V.x * V.x) + (V.y * V.y)));
+			vec2 force = plane->resolveCollision(box);
 
-		if (VMag <= rad * rad)
-		{
-			//cout << "Collide Box : Sphere" << endl;
+			vec2 position = box->getPosition();
+			position -= (overlap) * (0.5f) * (normal);
+
+			box->setPos(position);
+			box->applyForce(force);
+
 			return true;
 		}
 	}
@@ -318,8 +399,27 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 			dot(normal, boxTL) - plane->getDistance() < 0 ||
 			dot(normal, boxTR) - plane->getDistance() < 0)
 		{
-			box->setVelocity(vec2(0, 0));
-			cout << "Collide Box to Plane" << endl;
+			if (dot(normal, boxBL) - plane->getDistance() < 0)
+				overlap = dot(normal, boxBL) - plane->getDistance();
+
+			else if (dot(normal, boxBR) - plane->getDistance() < 0)
+				overlap = dot(normal, boxBR) - plane->getDistance();
+
+			else if (dot(normal, boxTL) - plane->getDistance() < 0)
+				overlap = dot(normal, boxTL) - plane->getDistance();
+
+			else if (dot(normal, boxTR) - plane->getDistance() < 0)
+				overlap = dot(normal, boxTR) - plane->getDistance();
+
+
+			vec2 force = plane->resolveCollision(box);
+
+			vec2 position = box->getPosition();
+			position -= (overlap) * (0.5f) * (normal);
+
+			box->setPos(position);
+			box->applyForce(force);
+
 			return true;
 		}
 	}
@@ -327,32 +427,6 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 	return false;
 }
 
-bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
-{
-	Box *box = dynamic_cast<Box*> (obj1);
-	Sphere *sphere = dynamic_cast<Sphere*> (obj2);
-
-	if (box != nullptr && sphere != nullptr)
-	{
-		vec2 boxColliderLT = box->getPosition() + vec2(box->getLength() / 2.0f, box->getHeight() / 2.0f);
-		vec2 boxColliderBR = boxColliderLT * -1.0f;
-
-		vec2 pos = sphere->getPosition();
-		float rad = sphere->getRadius();
-
-		vec2 pointA = clamping(pos, boxColliderBR, boxColliderLT);
-		vec2 V = pointA - pos;
-
-		float VMag = (sqrtf((V.x * V.x) + (V.y * V.y)))*(sqrtf((V.x * V.x) + (V.y * V.y)));
-
-		if (VMag <= rad * rad)
-		{
-			//cout << "Collide Box : Sphere" << endl;
-			return true;
-		}
-	}
-	return false;
-}
 
 bool PhysicsScene::box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 {
@@ -372,8 +446,8 @@ bool PhysicsScene::box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 			  box1ColliderMax.y < box2ColliderMin.y ||
 			  box2ColliderMax.y < box1ColliderMin.y))
 		{
-			box1->setVelocity(vec2(0, 0));
-			box2->setVelocity(vec2(0, 0));
+			
+			box1->resolveCollision(box2);
 			cout << "Collided AABB" << endl;
 			return true;
 		}
