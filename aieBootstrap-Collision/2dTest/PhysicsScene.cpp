@@ -9,12 +9,19 @@ static fn collisionFunctionArray[] =
 PhysicsScene::plane2Plane, 
 PhysicsScene::plane2Sphere,
 PhysicsScene::plane2AABB,
+PhysicsScene::plane2Box,
 PhysicsScene::sphere2Plane,
 PhysicsScene::sphere2Sphere,
 PhysicsScene::sphere2AABB,
+PhysicsScene::sphere2Box,
 PhysicsScene::AABB2Plane,
 PhysicsScene::AABB2Sphere,
 PhysicsScene::AABB2AABB,
+PhysicsScene::AABB2Box,
+PhysicsScene::box2Plane,
+PhysicsScene::box2Sphere,
+PhysicsScene::box2AABB,
+PhysicsScene::box2Box,
 };
 
 PhysicsScene::PhysicsScene() :m_timeStep(0.01f), m_gravity(vec2(0, 0)) {}
@@ -407,4 +414,34 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 	}
 
 	return false;
+}
+
+bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	return box2Plane(obj2, obj1);
+}
+
+bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2) 
+{
+	return true;
+}
+
+bool PhysicsScene::AABB2Box(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	return true;
+}
+
+bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	return true;
+}
+
+bool PhysicsScene::box2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	return true;
+}
+
+bool PhysicsScene::box2Box(PhysicsObject* obj1, PhysicsObject*obj2) 
+{
+	return true;
 }
