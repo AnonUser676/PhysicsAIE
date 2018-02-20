@@ -27,8 +27,8 @@ public:
 	Sphere* ball2;
 	Plane* wall;
 	Sphere* UFO;
-	Box* square;
-	Box* box;
+	AABB* square;
+	AABB* box;
 	Plane* wall2;
 	Plane* wall3;
 	Plane* wall4;

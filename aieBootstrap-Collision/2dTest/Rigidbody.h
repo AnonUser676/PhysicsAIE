@@ -9,13 +9,13 @@ public:
 
 	virtual void fixedUpdate(vec2 gravity, float timeStep);
 	virtual void debug();
-	void applyForce(vec2 force);
+	void applyForce(vec2 force, vec2 pos);
 	void applyForceToActor(Rigidbody* actor, vec2 force);
 
 	void setMass(float mass) { m_mass = mass; }
 	void setMoment(float moment) { m_moment = moment; }
 	void setVelocity(vec2 velocity) { m_velocity = velocity; }
-	void resolveCollision(Rigidbody* actor2);
+	void resolveCollision(Rigidbody* actor2, vec2 contact, vec2* collisionNormal = nullptr);
 	void setPos(vec2 position) { m_position = position; }
 	//virtual bool checkCollision(PhysicsObject* pOther) = 0;
 

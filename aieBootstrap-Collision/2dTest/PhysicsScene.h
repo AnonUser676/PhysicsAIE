@@ -7,6 +7,7 @@
 #include <iostream>
 #include "Sphere.h"
 #include "Plane.h"
+#include "AABB.h"
 #include "Box.h"
 
 using namespace std;
@@ -40,11 +41,12 @@ public:
 	static bool plane2Sphere(PhysicsObject*, PhysicsObject*);
 	static bool sphere2Plane(PhysicsObject*, PhysicsObject*);
 	static bool sphere2Sphere(PhysicsObject*, PhysicsObject*);
-	static bool plane2Box(PhysicsObject*, PhysicsObject*);
-	static bool sphere2Box(PhysicsObject*, PhysicsObject*);
+	static bool plane2AABB(PhysicsObject*, PhysicsObject*);
+	static bool sphere2AABB(PhysicsObject*, PhysicsObject*);
+	static bool AABB2Plane(PhysicsObject*, PhysicsObject*);
+	static bool AABB2Sphere(PhysicsObject*, PhysicsObject*);
+	static bool AABB2AABB(PhysicsObject*, PhysicsObject*);
 	static bool box2Plane(PhysicsObject*, PhysicsObject*);
-	static bool box2Sphere(PhysicsObject*, PhysicsObject*);
-	static bool box2Box(PhysicsObject*, PhysicsObject*);
 	int actorCounter() { return m_actors.size(); }
 
 protected:

@@ -2,20 +2,19 @@
 
 typedef bool(*fn)(PhysicsObject*, PhysicsObject*);
 
-vec2 clamping(const vec2 vector, const vec2 & min, const vec2 & max);
 float overlap = 0;
 
 static fn collisionFunctionArray[] =
 {
 PhysicsScene::plane2Plane, 
 PhysicsScene::plane2Sphere,
-PhysicsScene::plane2Box,
+PhysicsScene::plane2AABB,
 PhysicsScene::sphere2Plane,
 PhysicsScene::sphere2Sphere,
-PhysicsScene::sphere2Box,
-PhysicsScene::box2Plane,
-PhysicsScene::box2Sphere,
-PhysicsScene::box2Box,
+PhysicsScene::sphere2AABB,
+PhysicsScene::AABB2Plane,
+PhysicsScene::AABB2Sphere,
+PhysicsScene::AABB2AABB,
 };
 
 PhysicsScene::PhysicsScene() :m_timeStep(0.01f), m_gravity(vec2(0, 0)) {}
@@ -150,7 +149,7 @@ bool PhysicsScene::sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			sphere1->setPos(sphere1Pos);
 			sphere2->setPos(sphere2Pos);
 						
-			sphere1->resolveCollision(sphere2);
+			sphere1->resolveCollision(sphere2, 0.5f * (sphere1->getPosition() + sphere2->getPosition()));
 			//cout << "Collided" << endl;
 			
 			return true;
@@ -178,6 +177,7 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 		
 		float intersection = sphere->getRadius() - sphereToPlane;
 		
+		vec2 contact = sphere->getPosition() + (collisionNormal * -sphere->getRadius());
 
 		if (intersection > 0)
 		{
@@ -188,7 +188,7 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 			position += (intersection) * (1/sphere->getMass()) * (collisionNormal);
 
 			sphere->setPos(position);
-			sphere->applyForce(force);
+			sphere->applyForce(force, contact);
 
 			return true;
 		}
@@ -201,44 +201,50 @@ bool PhysicsScene::plane2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 	return sphere2Plane(obj2, obj1);
 }
 
-bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
+bool PhysicsScene::sphere2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 {
 	Sphere *sphere = dynamic_cast<Sphere*> (obj1);
-	Box *box = dynamic_cast<Box*> (obj2);
+	AABB *aabb = dynamic_cast<AABB*> (obj2);
 	
-	if (sphere != nullptr && box != nullptr)
+	if (sphere != nullptr && aabb != nullptr)
 	{
-		vec2 normal = sphere->getPosition() - box->getPosition();
+		vec2 normal = sphere->getPosition() - aabb->getPosition();
 
 		vec2 closest = normal;
 
-		vec2 max_extent = box->getPosition() + vec2(box->getLength(), box->getHeight());
-		vec2 min_extent = box->getPosition() - vec2(box->getLength(), box->getHeight());
-
-		closest = clamp(max_extent, min_extent, sphere->getPosition());
+		vec2 max_extent = aabb->getPosition() + vec2(aabb->getLength(), aabb->getHeight());
+		vec2 min_extent = aabb->getPosition() - vec2(aabb->getLength(), aabb->getHeight());
 				
+		closest = clamp(sphere->getPosition(), min_extent, max_extent);
+
+		Gizmos::add2DCircle(closest, 1, 12, vec4(1, 1, 1, 1));
 		//float distance = closest.length() * closest.length();
 		vec2 distance = closest - sphere->getPosition();
+
+		float Length = length(distance);
+
 		float radius = sphere->getRadius();
 
-		float distanceMagnitude = dot(distance, distance);
-
-		if (distanceMagnitude < radius * radius)
+		
+		if (Length < radius)
 		{
-			cout << "Collided with box to Sphere" << endl;
+ 			cout << "Collided with AABB to Sphere" << endl;
 			
 			/*float overlap = (length(distance) + radius) - distanceMagnitude;
 
-			float totalMass = sphere->getMass() + box->getMass();
+			float totalMass = sphere->getMass() + aabb->getMass();
 
 			vec2 spherePos = sphere->getPosition() - normalize(normal) * (sphere->getMass() / totalMass) * overlap;
-			vec2 boxPos = box->getPosition() + normalize(normal) * (box->getMass() / totalMass) * overlap;
+			vec2 aabbPos = aabb->getPosition() + normalize(normal) * (aabb->getMass() / totalMass) * overlap;
 
 			sphere->setPos(spherePos);
-			box->setPos(boxPos);*/
+			aabb->setPos(aabbPos);*/
 
-			sphere->resolveCollision(box);
-			box->resolveCollision(sphere);
+			aabb->resolveCollision(sphere, closest);
+			sphere->resolveCollision(aabb, closest);
+
+			//aabb->resolveCollision(sphere, normal);
+			
 			return true;
 		}
 
@@ -246,53 +252,105 @@ bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 	return false;
 }
 
-bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
+bool PhysicsScene::AABB2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 {
-	return sphere2Box(obj2, obj1);
+	return sphere2AABB(obj2, obj1);
 }
 
-bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
+bool PhysicsScene::plane2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 {
 	Plane *plane = dynamic_cast<Plane*> (obj1);
-	Box *box = dynamic_cast<Box*> (obj2);
+	AABB *aabb = dynamic_cast<AABB*> (obj2);
 
-	if (plane != nullptr && box != nullptr)
+	if (plane != nullptr && aabb != nullptr)
 	{
 		vec2 normal = plane->getNormal();
-		//vec2 boxBL = box->getPosition();
-		//vec2 boxBR = box->getPosition() + vec2(box->getLength(), 0);
-		//vec2 boxTL = box->getPosition() + vec2(0, box->getHeight());
-		//vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
-		vec2 boxBL = box->getPosition() - vec2(box->getLength(), box->getHeight());
-		vec2 boxBR = box->getPosition() + vec2(box->getLength(), -1.0f*(box->getHeight()));
-		vec2 boxTL = box->getPosition() + vec2(-1.0f*(box->getLength()), box->getHeight());
-		vec2 boxTR = box->getPosition() + vec2(box->getLength(), box->getHeight());
+		//vec2 aabbBL = aabb->getPosition();
+		//vec2 aabbBR = aabb->getPosition() + vec2(aabb->getLength(), 0);
+		//vec2 aabbTL = aabb->getPosition() + vec2(0, aabb->getHeight());
+		//vec2 aabbTR = aabb->getPosition() + vec2(aabb->getLength(), aabb->getHeight());
+		vec2 aabbBL = aabb->getPosition() - vec2(aabb->getLength(), aabb->getHeight());
+		vec2 aabbBR = aabb->getPosition() + vec2(aabb->getLength(), -1.0f*(aabb->getHeight()));
+		vec2 aabbTL = aabb->getPosition() + vec2(-1.0f*(aabb->getLength()), aabb->getHeight());
+		vec2 aabbTR = aabb->getPosition() + vec2(aabb->getLength(), aabb->getHeight());
 
-		if (dot(normal, boxBL) - plane->getDistance() < 0 ||
-			dot(normal, boxBR) - plane->getDistance() < 0 ||
-			dot(normal, boxTL) - plane->getDistance() < 0 ||
-			dot(normal, boxTR) - plane->getDistance() < 0)
+		if (dot(normal, aabbBL) - plane->getDistance() < 0 ||
+			dot(normal, aabbBR) - plane->getDistance() < 0 ||
+			dot(normal, aabbTL) - plane->getDistance() < 0 ||
+			dot(normal, aabbTR) - plane->getDistance() < 0)
 		{
-			if (dot(normal, boxBL) - plane->getDistance() < 0)
-				overlap = dot(normal, boxBL) - plane->getDistance();
+			if (dot(normal, aabbBL) - plane->getDistance() < 0)
+				overlap = dot(normal, aabbBL) - plane->getDistance();
 
-			else if (dot(normal, boxBR) - plane->getDistance() < 0)
-				overlap = dot(normal, boxBR) - plane->getDistance();
+			else if (dot(normal, aabbBR) - plane->getDistance() < 0)
+				overlap = dot(normal, aabbBR) - plane->getDistance();
 
-			else if (dot(normal, boxTL) - plane->getDistance() < 0)
-				overlap = dot(normal, boxTL) - plane->getDistance();
+			else if (dot(normal, aabbTL) - plane->getDistance() < 0)
+				overlap = dot(normal, aabbTL) - plane->getDistance();
 
-			else if (dot(normal, boxTR) - plane->getDistance() < 0)
-				overlap = dot(normal, boxTR) - plane->getDistance();
+			else if (dot(normal, aabbTR) - plane->getDistance() < 0)
+				overlap = dot(normal, aabbTR) - plane->getDistance();
 
-			vec2 force = plane->resolveCollision(box);
+			vec2 force = plane->resolveCollision(aabb);
 
-			vec2 position = box->getPosition();
-			position -= (overlap) * (0.5f) * (normal);
+			vec2 position = aabb->getPosition();
+			position -= (overlap) * (normal);
 
-			box->setPos(position);
-			box->applyForce(force);
+			aabb->setPos(position);
+			aabb->applyForce(force, normal);
 
+			return true;
+		}
+	}
+	return false;
+}
+
+bool PhysicsScene::AABB2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	return plane2AABB(obj2, obj1);
+}
+
+
+bool PhysicsScene::AABB2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
+{
+	AABB *aabb1 = dynamic_cast<AABB*> (obj2);
+	AABB *aabb2 = dynamic_cast<AABB*> (obj1);
+
+	vec2 normal = aabb2->getPosition() - aabb1->getPosition();
+
+	if (aabb1 != nullptr  && aabb2 != nullptr)
+	{
+		vec2 aabb1ColliderMax = aabb1->getPosition() + vec2(aabb1->getLength(), aabb1->getHeight());
+		vec2 aabb1ColliderMin = aabb1->getPosition() - vec2(aabb1->getLength(), aabb1->getHeight());
+
+		vec2 aabb2ColliderMax = aabb2->getPosition() + vec2(aabb2->getLength(),aabb2->getHeight());
+		vec2 aabb2ColliderMin = aabb2->getPosition() - vec2(aabb2->getLength(), aabb2->getHeight());
+
+		if (!(aabb1ColliderMax.x < aabb2ColliderMin.x ||
+			  aabb2ColliderMax.x < aabb1ColliderMin.x ||
+			  aabb1ColliderMax.y < aabb2ColliderMin.y ||
+			  aabb2ColliderMax.y < aabb1ColliderMin.y))
+		{
+			float AABBOverlap = 0;
+
+			if (!(aabb1ColliderMax.x < aabb2ColliderMin.x))
+				AABBOverlap = aabb1ColliderMax.x;
+
+			else if (!(aabb2ColliderMax.x < aabb1ColliderMin.x))
+				AABBOverlap = aabb2ColliderMax.x;
+
+			else if (!(aabb1ColliderMax.y < aabb2ColliderMin.y))
+				AABBOverlap = aabb1ColliderMax.y;
+
+			else if (!(aabb2ColliderMax.y < aabb1ColliderMin.y))
+				AABBOverlap = aabb2ColliderMax.y;
+
+			vec2 contact = normal * AABBOverlap;
+
+			Gizmos::add2DCircle(contact, 8, 12, vec4(0, 1, 0, 1));
+
+			aabb1->resolveCollision(aabb2,normal);
+			cout << "Collided aabb" << endl;
 			return true;
 		}
 	}
@@ -301,52 +359,52 @@ bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 {
-	return plane2Box(obj2, obj1);
-}
+	Box *box = dynamic_cast<Box*>(obj1);
+	Plane *plane = dynamic_cast<Plane*>(obj2);
 
-
-bool PhysicsScene::box2Box(PhysicsObject* obj1, PhysicsObject* obj2)
-{
-	Box *box1 = dynamic_cast<Box*> (obj2);
-	Box *box2 = dynamic_cast<Box*> (obj1);
-
-	if (box1 != nullptr  && box2 != nullptr)
+	if (box != nullptr && plane != nullptr)
 	{
-		vec2 box1ColliderMax = box1->getPosition() + vec2(box1->getLength(), box1->getHeight());
-		vec2 box1ColliderMin = box1->getPosition() - vec2(box1->getLength(), box1->getHeight());
+		int numContacts = 0;
+		vec2 contact(0, 0);
+		float contactV = 0;
+		float radius = 0.5f * fminf(box->getLength(), box->getHeight());
 
-		vec2 box2ColliderMax = box2->getPosition() + vec2(box2->getLength(),box2->getHeight());
-		vec2 box2ColliderMin = box2->getPosition() - vec2(box2->getLength(), box2->getHeight());
+		vec2 planeOrigin = plane->getNormal() * plane->getDistance();
+		float comFromPlane = dot(box->getPosition() - planeOrigin, plane->getNormal());
 
-		if (!(box1ColliderMax.x < box2ColliderMin.x ||
-			  box2ColliderMax.x < box1ColliderMin.x ||
-			  box1ColliderMax.y < box2ColliderMin.y ||
-			  box2ColliderMax.y < box1ColliderMin.y))
+		for (float x = -box->getExtents().x; x < box->getLength(); x+=box->getLength())
 		{
-			
-			box1->resolveCollision(box2);
-			cout << "Collided AABB" << endl;
-			return true;
+			for (float y = -box->getExtents().y; y < box->getHeight(); y+=box->getHeight())
+			{
+				vec2 p = box->getPosition() + box->getLocalX() + y * box->getLocalY();
+
+				float distFromPlane = dot(p - planeOrigin, plane->getNormal());
+
+				float velocityIntoPlane = dot(box->getVelocity() + box->getRotation() * (-y * box->getLocalX() + x * box->getLocalY()), plane->getNormal());
+
+				if ((distFromPlane > 0 && comFromPlane < 0 && velocityIntoPlane > 0) ||
+					(distFromPlane < 0 && comFromPlane > 0 && velocityIntoPlane < 0))
+				{
+					numContacts++;
+					contact += p;
+					contactV += velocityIntoPlane;
+				}
+			}
+		}
+
+		if (numContacts > 0)
+		{
+			float collisionV = contactV / (float)numContacts;
+			vec2 acceleration = -plane->getNormal() * ((1.0f + box->getElasticity()) * collisionV);
+			vec2 localContact = (contact / (float)numContacts) - box->getPosition();
+
+			float r = dot(localContact, vec2(plane->getNormal().y, -plane->getNormal().x));
+
+			float mass0 = 1.0f / (1.0f / box->getMass() + (r*r) / box->getMoment());
+
+			box->applyForce(acceleration * mass0, localContact);
 		}
 	}
+
 	return false;
-}
-
-vec2 clamping(const vec2 vector, const vec2 & min, const vec2 & max)
-{
-	vec2 temp = vec2(0,0);
-	if (vector.x < min.x)
-		temp.x = min.x;
-
-	if (vector.y < min.y)
-		temp.y = min.y;
-
-	if (vector.x > max.x)
-		temp.x = max.x;
-
-	if (vector.y > max.y)
-		temp.y = max.y;
-
-	return temp;
-	
 }

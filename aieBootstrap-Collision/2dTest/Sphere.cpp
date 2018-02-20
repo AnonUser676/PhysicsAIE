@@ -26,7 +26,10 @@ Sphere::~Sphere()
 
 void Sphere::makeGizmo()
 {
+	vec2 end = vec2(cos(m_rotation), sin(m_rotation))*m_radius;
+
 	Gizmos::add2DCircle(m_position, m_radius, 36, m_color);
+	Gizmos::add2DLine(m_position, m_position + end, -m_color);
 }
 
 //bool Sphere::checkCollision(PhysicsObject* pOther)
