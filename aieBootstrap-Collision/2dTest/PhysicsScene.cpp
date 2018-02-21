@@ -341,22 +341,22 @@ bool PhysicsScene::AABB2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 			float AABBOverlap = 0;
 
 			if (!(aabb1ColliderMax.x < aabb2ColliderMin.x))
-				AABBOverlap = aabb1ColliderMax.x;
+				AABBOverlap = aabb1ColliderMax.x - aabb2ColliderMin.x;
 
 			else if (!(aabb2ColliderMax.x < aabb1ColliderMin.x))
-				AABBOverlap = aabb2ColliderMax.x;
+				AABBOverlap = aabb2ColliderMax.x - aabb1ColliderMin.x;
 
 			else if (!(aabb1ColliderMax.y < aabb2ColliderMin.y))
-				AABBOverlap = aabb1ColliderMax.y;
+				AABBOverlap = aabb1ColliderMax.y - aabb2ColliderMin.y;
 
 			else if (!(aabb2ColliderMax.y < aabb1ColliderMin.y))
-				AABBOverlap = aabb2ColliderMax.y;
+				AABBOverlap = aabb2ColliderMax.y - aabb1ColliderMin.y;
 
-			vec2 contact = normal * AABBOverlap;
+			vec2 contact = normalize(normal) * AABBOverlap;
 
-			Gizmos::add2DCircle(contact, 8, 12, vec4(0, 1, 0, 1));
+			Gizmos::add2DCircle(contact, 1, 12, vec4(0, 1, 0, 1));
 
-			aabb1->resolveCollision(aabb2,normal);
+			aabb1->resolveCollision(aabb2,contact);
 			cout << "Collided aabb" << endl;
 			return true;
 		}
@@ -379,9 +379,9 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 		vec2 planeOrigin = plane->getNormal() * plane->getDistance();
 		float comFromPlane = dot(box->getPosition() - planeOrigin, plane->getNormal());
 
-		for (float x = -box->getExtents().x; x < box->getLength(); x+=box->getLength())
+		for (float x = -box->getExtents().x; x < box->getLength(); x += box->getLength())
 		{
-			for (float y = -box->getExtents().y; y < box->getHeight(); y+=box->getHeight())
+			for (float y = -box->getExtents().y; y < box->getHeight(); y += box->getHeight())
 			{
 				vec2 p = box->getPosition() + box->getLocalX() + y * box->getLocalY();
 
@@ -433,7 +433,72 @@ bool PhysicsScene::AABB2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 {
-	return true;
+	Box* box = dynamic_cast<Box*>(obj1);
+	Sphere* sphere = dynamic_cast<Sphere*>(obj2);
+
+	if (box != nullptr && sphere != nullptr)
+	{
+		vec2 circlePos = sphere->getPosition() - box->getPosition();
+		float w2 = box->getLength() / 2;
+		float h2 = box->getHeight() / 2;
+
+		int numContacts = 0;
+		vec2 contact(0, 0);
+
+		for (float x = -w2; x <= w2; x += box->getLength())
+		{
+			for (float y = -h2; y <= h2; y += box->getHeight())
+			{
+				vec2 p = x * box->getLocalX() + y * box->getLocalY();
+				vec2 dp = p - circlePos;
+				if (dp.x * dp.x + dp.y * dp.y < sphere->getRadius() * sphere->getRadius())
+				{
+					numContacts++;
+					contact += vec2(x, y);
+				}
+			}
+		}
+		vec2* direction = nullptr;
+		vec2 localPos(dot(box->getLocalX(), circlePos), dot(box->getLocalY(), circlePos));
+
+		if (localPos.y <h2 && localPos.y > -h2)
+		{
+			if (localPos.x > 0 && localPos.x < w2 + sphere->getRadius())
+			{
+				numContacts++;
+				contact += vec2(w2, localPos.y);
+				direction = new vec2(box->getLocalX());
+			}
+			if (localPos.x < 0 && localPos.x > -(w2 + sphere->getRadius())) 
+			{
+				numContacts++;
+				contact += glm::vec2(-w2, localPos.y); 
+				direction = new glm::vec2(-box->getLocalX()); 
+			}
+		}
+		if (localPos.x < w2 && localPos.x > -w2)
+		{
+			if (localPos.y > 0 && localPos.y < h2 + sphere->getRadius())
+			{
+				numContacts++;
+				contact += glm::vec2(localPos.x, h2);
+				direction = new glm::vec2(box->getLocalY());
+			}
+			if (localPos.y < 0 && localPos.y > -(h2 + sphere->getRadius()))
+			{
+				numContacts++;
+				contact += glm::vec2(localPos.x, -h2);
+				direction = new glm::vec2(-box->getLocalY());
+			}
+		}
+		if (numContacts > 0) 
+		{
+			contact = box->getPosition() + (1.0f / numContacts) * (box->getLocalX() *contact.x + box->getLocalY()*contact.y); 
+			box->resolveCollision(sphere, contact, direction);
+		}
+		delete direction;
+	}
+	return false;
 }
 
 bool PhysicsScene::box2AABB(PhysicsObject* obj1, PhysicsObject* obj2)

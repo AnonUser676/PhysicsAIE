@@ -64,28 +64,30 @@ bool _2dTestApp::startup() {
 	//ball2->applyForce(vec2(30, 0));
 
 	
-	wall = new Plane(vec2 (-1,1),-40);
+	wall = new Plane(vec2 (0,1),-40);
 	wall2 = new Plane(vec2(1, 1), -40);
-	wall3 = new Plane(vec2(-1, 0), 100);
-	wall4 = new Plane(vec2(1, 0), -100);
+	wall3 = new Plane(vec2(1, 1), -50);
+	wall4 = new Plane(vec2(-1, 1), -50);
 	wall5 = new Plane(vec2(0, -1), 100);
-	ball1 = new Sphere(vec2(-30,25),vec2(0,0),170.0f,3.0f, 0.5f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
-	ball2 = new Sphere(vec2(-20, -10), vec2(0, 0), 160.0f, 3.0f, 0.3f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
+	objectBox1 = new Box(vec2(0, 80), 5, 5, vec2(0, 0), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
+	ball1 = new Sphere(vec2(-25,25),vec2(0,0),110.0f,3.0f, 0.5f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
+	ball2 = new Sphere(vec2(-30, -10), vec2(0, 0), 160.0f, 3.0f, 0.3f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
 	//rocket = new Sphere(vec2(0, 50), vec2(0, -5), 100, 8, vec4(0, 1, 1, 1));
-	UFO = new Sphere(vec2(0, 30), vec2(0,0), 0.5f, 10.0f, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
+	UFO = new Sphere(vec2(10, 50), vec2(0,0), 0.5f, 10.0f, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
 	square = new AABB(vec2(-50, 40), 5, 15, vec2(20, 10), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 1, 1));
-	box = new AABB(vec2(-20, 40), 5, 5, vec2(0, 0), 100.0f, 0.1f, 0.1f, 0.99f, vec4(1, 0.32f, 1, 1));
+	box = new AABB(vec2(40, 40), 5, 5, vec2(0, 0), 100.0f, 0.1f, 0.1f, 0.99f, vec4(1, 0.32f, 1, 1));
 	//m_physicsScene->addActor(rocket);
 	m_physicsScene->addActor(ball1);
 	m_physicsScene->addActor(ball2);
+	m_physicsScene->addActor(objectBox1);
 	m_physicsScene->addActor(wall);
-	m_physicsScene->addActor(wall2);
-	//m_physicsScene->addActor(wall3);
-	//m_physicsScene->addActor(wall4);
+	//m_physicsScene->addActor(wall2);
+	m_physicsScene->addActor(wall3);
+	m_physicsScene->addActor(wall4);
 	//m_physicsScene->addActor(wall5);
 	m_physicsScene->addActor(UFO);
-	m_physicsScene->addActor(square);
-	m_physicsScene->addActor(box);
+	//m_physicsScene->addActor(square);
+	//m_physicsScene->addActor(box);
 	
 	return true;
 }
