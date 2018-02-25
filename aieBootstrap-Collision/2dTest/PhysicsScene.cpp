@@ -237,15 +237,16 @@ bool PhysicsScene::sphere2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 		{
  			cout << "Collided with AABB to Sphere" << endl;
 			
-			/*float overlap = (length(distance) + radius) - distanceMagnitude;
+			float overlap =  length(closest - aabb->getPosition()) - Length;
+			float overlapCircle = radius - Length;
 
 			float totalMass = sphere->getMass() + aabb->getMass();
 
-			vec2 spherePos = sphere->getPosition() - normalize(normal) * (sphere->getMass() / totalMass) * overlap;
-			vec2 aabbPos = aabb->getPosition() + normalize(normal) * (aabb->getMass() / totalMass) * overlap;
+			vec2 spherePos = sphere->getPosition() - normalize(normal) * (sphere->getMass() / totalMass) * overlapCircle;
+			vec2 aabbPos = aabb->getPosition() - normalize(normal) * (aabb->getMass() / totalMass) * overlap;
 
 			sphere->setPos(spherePos);
-			aabb->setPos(aabbPos);*/
+			aabb->setPos(aabbPos);
 
 			aabb->resolveCollision(sphere, closest);
 			sphere->resolveCollision(aabb, closest);
@@ -378,6 +379,8 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 
 		vec2 planeOrigin = plane->getNormal() * plane->getDistance();
 		float comFromPlane = dot(box->getPosition() - planeOrigin, plane->getNormal());
+		vec2 position = box->getPosition();
+		float boxOverlap = 0.0f;
 
 		for (float x = -box->getExtents().x; x < box->getLength(); x += box->getLength())
 		{
@@ -395,6 +398,7 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 					numContacts++;
 					contact += p;
 					contactV += velocityIntoPlane;
+					boxOverlap = distFromPlane;
 				}
 			}
 		}
@@ -409,6 +413,9 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 
 			float mass0 = 1.0f / (1.0f / box->getMass() + (r*r) / box->getMoment());
 
+			position -= boxOverlap * plane->getNormal();
+
+			box->setPos(position);
 			box->applyForce(acceleration * mass0, localContact);
 		}
 	}
@@ -423,7 +430,7 @@ bool PhysicsScene::plane2Box(PhysicsObject* obj1, PhysicsObject* obj2)
 
 bool PhysicsScene::sphere2Box(PhysicsObject* obj1, PhysicsObject* obj2) 
 {
-	return true;
+	return box2Sphere(obj2, obj1);
 }
 
 bool PhysicsScene::AABB2Box(PhysicsObject* obj1, PhysicsObject* obj2)
@@ -508,5 +515,29 @@ bool PhysicsScene::box2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 
 bool PhysicsScene::box2Box(PhysicsObject* obj1, PhysicsObject*obj2) 
 {
-	return true;
+	Box* box1 = dynamic_cast<Box*>(obj1); 
+	Box* box2 = dynamic_cast<Box*>(obj2); 
+	
+	if (box1 != nullptr && box2 != nullptr) 
+	{
+		vec2 boxPos = box2->getPosition() - box1->getPosition(); 
+		vec2 norm(0, 0); 
+		vec2 contact(0, 0); 
+		float pen = 0; 
+		int numContacts = 0; 
+		box1->checkBoxCorners(*box2, contact, numContacts, pen, norm); 
+		
+		if (box2->checkBoxCorners(*box1, contact, numContacts, pen, norm)) 
+		{ 
+			norm = -norm; 
+		} 
+		
+		if (pen > 0) 
+		{
+			box1->resolveCollision(box2, contact / float(numContacts), &norm); 
+		} 
+		
+		return true; 
+	} 
+	return false;
 }

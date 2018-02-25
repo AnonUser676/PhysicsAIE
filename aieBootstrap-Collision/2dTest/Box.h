@@ -14,6 +14,7 @@ public:
 	virtual void makeGizmo();
 
 	virtual void fixedUpdate(vec2 gravity, float timeStep);
+	bool checkBoxCorners(Box& box, vec2& contact, int& numContacts, float &pen, vec2& edgeNormal);
 
 	float getHeight();
 	float getLength();
