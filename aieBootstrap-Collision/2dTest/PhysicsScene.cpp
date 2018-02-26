@@ -342,20 +342,35 @@ bool PhysicsScene::AABB2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 		{
 			float AABBOverlap = 0;
 
+			vec2 contact(0, 0);
+
 			if (!(aabb1ColliderMax.x < aabb2ColliderMin.x))
+			{
 				AABBOverlap = (aabb1ColliderMax.x - aabb2ColliderMin.x) * 0.5f;
+				contact.x = aabb1->getPosition().x - AABBOverlap;
+				contact.y = aabb1->getPosition().y;
+			}
 
 			else if (!(aabb2ColliderMax.x < aabb1ColliderMin.x))
+			{
 				AABBOverlap = (aabb2ColliderMax.x - aabb1ColliderMin.x) * 0.5f;
-
+				contact.x = aabb1->getPosition().x - AABBOverlap;
+				contact.y = aabb1->getPosition().y;
+			}	
 			else if (!(aabb1ColliderMax.y < aabb2ColliderMin.y))
+			{
 				AABBOverlap = (aabb1ColliderMax.y - aabb2ColliderMin.y) * 0.5f;
-
+				contact.x = aabb1->getPosition().x;
+				contact.y = aabb1->getPosition().y - AABBOverlap;
+			}
 			else if (!(aabb2ColliderMax.y < aabb1ColliderMin.y))
+			{
 				AABBOverlap = (aabb2ColliderMax.y - aabb1ColliderMin.y) * 0.5f;
+				contact.x = aabb1->getPosition().x;
+				contact.y = aabb1->getPosition().y - AABBOverlap;
+			}
 
-			vec2 contact = clamp(aabb2->getPosition(),aabb2ColliderMin,aabb2ColliderMax);
-
+			
 			Gizmos::add2DCircle(contact, 1, 12, vec4(0, 1, 0, 1));
 
 			aabb1->resolveCollision(aabb2,contact);
