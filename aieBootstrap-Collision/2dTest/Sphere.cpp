@@ -12,6 +12,7 @@ Sphere::Sphere(vec2 position, vec2 velocity, float mass, float radius, float lin
 	m_angularDrag = angularDrag;
 	m_moment = 0.5f * mass * radius * radius;
 	m_elasticity = elasticity;
+	setKinematic(false);
 }
 
 Sphere::Sphere(vec2 startPos, float inclination, float speed, float mass, float radius, float linearDrag, float angularDrag, float elasticity, vec4 color) :Sphere(startPos, vec2(cosf(inclination), sinf(inclination))*speed, mass, radius, linearDrag, angularDrag, elasticity, color)

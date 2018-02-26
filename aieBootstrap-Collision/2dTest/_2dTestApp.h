@@ -34,6 +34,7 @@ public:
 	Plane* wall4;
 	Plane* wall5;
 	Box* objectBox1;
+	Box* objectBox2;
 
 protected:
 

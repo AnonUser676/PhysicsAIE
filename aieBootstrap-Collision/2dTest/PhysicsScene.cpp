@@ -24,7 +24,7 @@ PhysicsScene::box2AABB,
 PhysicsScene::box2Box,
 };
 
-PhysicsScene::PhysicsScene() :m_timeStep(0.01f), m_gravity(vec2(0, 0)) {}
+PhysicsScene::PhysicsScene() :m_timeStep(0.01f), m_gravity(vec2(0, -10.0f)) {}
 
 PhysicsScene::~PhysicsScene() 
 {
@@ -130,6 +130,7 @@ void PhysicsScene::checkCollision()
 
 bool PhysicsScene::plane2Plane(PhysicsObject*, PhysicsObject*) { return false; }
 
+
 bool PhysicsScene::sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 {
 	Sphere *sphere1 = dynamic_cast<Sphere*>(obj1);
@@ -153,10 +154,10 @@ bool PhysicsScene::sphere2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 			vec2 sphere1Pos = sphere1->getPosition() + collNormal * ( sphere2->getMass() / totalMass ) * overlap;
 			vec2 sphere2Pos = sphere2->getPosition() - collNormal * ( sphere1->getMass() / totalMass ) * overlap;
 
-			sphere1->setPos(sphere1Pos);
-			sphere2->setPos(sphere2Pos);
 						
 			sphere1->resolveCollision(sphere2, 0.5f * (sphere1->getPosition() + sphere2->getPosition()));
+			sphere1->setPos(sphere1Pos);
+			sphere2->setPos(sphere2Pos);
 			//cout << "Collided" << endl;
 			
 			return true;
@@ -194,9 +195,9 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 			vec2 position = sphere->getPosition();
 			position += (intersection) * (1/sphere->getMass()) * (collisionNormal);
 
-			sphere->setPos(position);
+			
 			sphere->applyForce(force, contact);
-
+			sphere->setPos(position);
 			return true;
 		}
 	}
@@ -245,8 +246,8 @@ bool PhysicsScene::sphere2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 			vec2 spherePos = sphere->getPosition() - normalize(normal) * (sphere->getMass() / totalMass) * overlapCircle;
 			vec2 aabbPos = aabb->getPosition() - normalize(normal) * (aabb->getMass() / totalMass) * overlap;
 
-			sphere->setPos(spherePos);
-			aabb->setPos(aabbPos);
+			//sphere->setPos(spherePos);
+			//aabb->setPos(aabbPos);
 
 			aabb->resolveCollision(sphere, closest);
 			sphere->resolveCollision(aabb, closest);
@@ -342,18 +343,18 @@ bool PhysicsScene::AABB2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 			float AABBOverlap = 0;
 
 			if (!(aabb1ColliderMax.x < aabb2ColliderMin.x))
-				AABBOverlap = aabb1ColliderMax.x - aabb2ColliderMin.x;
+				AABBOverlap = (aabb1ColliderMax.x - aabb2ColliderMin.x) * 0.5f;
 
 			else if (!(aabb2ColliderMax.x < aabb1ColliderMin.x))
-				AABBOverlap = aabb2ColliderMax.x - aabb1ColliderMin.x;
+				AABBOverlap = (aabb2ColliderMax.x - aabb1ColliderMin.x) * 0.5f;
 
 			else if (!(aabb1ColliderMax.y < aabb2ColliderMin.y))
-				AABBOverlap = aabb1ColliderMax.y - aabb2ColliderMin.y;
+				AABBOverlap = (aabb1ColliderMax.y - aabb2ColliderMin.y) * 0.5f;
 
 			else if (!(aabb2ColliderMax.y < aabb1ColliderMin.y))
-				AABBOverlap = aabb2ColliderMax.y - aabb1ColliderMin.y;
+				AABBOverlap = (aabb2ColliderMax.y - aabb1ColliderMin.y) * 0.5f;
 
-			vec2 contact = normalize(normal) * AABBOverlap;
+			vec2 contact = clamp(aabb2->getPosition(),aabb2ColliderMin,aabb2ColliderMax);
 
 			Gizmos::add2DCircle(contact, 1, 12, vec4(0, 1, 0, 1));
 
@@ -376,6 +377,7 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 		vec2 contact(0, 0);
 		float contactV = 0;
 		float radius = 0.5f * fminf(box->getLength(), box->getHeight());
+		float penetration = 0;
 
 		vec2 planeOrigin = plane->getNormal() * plane->getDistance();
 		float comFromPlane = dot(box->getPosition() - planeOrigin, plane->getNormal());
@@ -392,13 +394,24 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 
 				float velocityIntoPlane = dot(box->getVelocity() + box->getRotation() * (-y * box->getLocalX() + x * box->getLocalY()), plane->getNormal());
 
-				if ((distFromPlane > 0 && comFromPlane < 0 && velocityIntoPlane > 0) ||
-					(distFromPlane < 0 && comFromPlane > 0 && velocityIntoPlane < 0))
+				if ((distFromPlane > 0 && comFromPlane < 0 && velocityIntoPlane >= 0) ||
+					(distFromPlane < 0 && comFromPlane > 0 && velocityIntoPlane <= 0))
 				{
 					numContacts++;
 					contact += p;
 					contactV += velocityIntoPlane;
-					boxOverlap = distFromPlane;
+					
+					if (comFromPlane >= 0)
+					{
+						if (penetration > distFromPlane)
+							penetration = distFromPlane;
+					}
+					else
+					{
+						if (penetration < distFromPlane)
+							penetration = distFromPlane;
+					}
+
 				}
 			}
 		}
@@ -413,10 +426,12 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 
 			float mass0 = 1.0f / (1.0f / box->getMass() + (r*r) / box->getMoment());
 
-			position -= boxOverlap * plane->getNormal();
+			//position -= boxOverlap * plane->getNormal();
 
-			box->setPos(position);
+			//box->setPos(position);
 			box->applyForce(acceleration * mass0, localContact);
+
+			//box->setPos(box->getPosition() - plane->getNormal() * penetration);
 		}
 	}
 
@@ -501,6 +516,19 @@ bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 		if (numContacts > 0) 
 		{
 			contact = box->getPosition() + (1.0f / numContacts) * (box->getLocalX() *contact.x + box->getLocalY()*contact.y); 
+			
+			float pen = sphere->getRadius() - length(contact - sphere->getPosition());
+			vec2 penVec = normalize(contact - sphere->getPosition()) * pen;
+
+			if (!box->isKinematic() && !sphere->isKinematic())
+			{
+				box->setPos(box->getPosition() + penVec * 0.5f);
+				sphere->setPos(sphere->getPosition() - penVec * 0.05f);
+			}
+			else
+			{
+				sphere->setPos(sphere->getPosition() - penVec);
+			}
 			box->resolveCollision(sphere, contact, direction);
 		}
 		delete direction;
@@ -521,23 +549,29 @@ bool PhysicsScene::box2Box(PhysicsObject* obj1, PhysicsObject*obj2)
 	if (box1 != nullptr && box2 != nullptr) 
 	{
 		vec2 boxPos = box2->getPosition() - box1->getPosition(); 
-		vec2 norm(0, 0); 
+		vec2 normal;
+		vec2 contactForce1, contactForce2;
 		vec2 contact(0, 0); 
-		float pen = 0; 
 		int numContacts = 0; 
-		box1->checkBoxCorners(*box2, contact, numContacts, pen, norm); 
 		
-		if (box2->checkBoxCorners(*box1, contact, numContacts, pen, norm)) 
+		box1->checkBoxCorners(*box2, contact, numContacts, normal, contactForce1);
+
+		if (box2->checkBoxCorners(*box1, contact, numContacts, normal, contactForce2)) 
 		{ 
-			norm = -norm; 
+			normal = -normal; 
 		} 
 		
-		if (pen > 0) 
+		if (numContacts > 0) 
 		{
-			box1->resolveCollision(box2, contact / float(numContacts), &norm); 
+			vec2 contactForce = 0.5f * (contactForce - contactForce2);
+			box1->setPos(box1->getPosition() - contactForce);
+			box2->setPos(box2->getPosition() + contactForce);
+
+			box1->resolveCollision(box2, contact / float(numContacts), &normal);
+
+			cout << "collision box2 box" << endl;
+			return true;
 		} 
-		
-		return true; 
 	} 
 	return false;
 }

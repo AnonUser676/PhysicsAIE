@@ -13,6 +13,7 @@ Box::Box(vec2 position, float length, float height, vec2 velocity, float mass, f
 	m_linearDrag = linearDrag;
 	m_elasticity = elasticity;
 	m_extents = vec2((length) * 0.5f, (height) * 0.5f);
+	setKinematic(false);
 	//m_localX = normalize(vec2(cosf(m_rotation), sinf(m_rotation)));
 	//m_localY = normalize(vec2(-sinf(m_rotation), cosf(m_rotation)));
 }
@@ -74,26 +75,74 @@ vec2 Box::getExtents()
 	return vec2(m_length,m_height);
 }
 
-bool Box::checkBoxCorners(Box& box, vec2& contact, int& numContacts, float &pen, vec2& edgeNormal)
+bool Box::checkBoxCorners(Box& box, vec2& contact, int& numContacts, vec2& edgeNormal, vec2& contactForce)
 {
-	float minX, maxX, minY, maxY; 
 	float boxW = box.getExtents().x * 2; 
-	float boxH = box.getExtents().y * 2; 
-	int numLocalContacts = 0; 
-	vec2 localContact(0, 0);
-	bool first = true; 
+	float boxH = box.getExtents().y * 2;
+	float penetration = 0;
 	
-	for (float x = -box.getExtents().x; x < boxW; x += boxW) 
+	for (float x = -box.getExtents().x; x < boxW; x += boxW)
 	{
-		for (float y = -box.getExtents().y; y < boxH; y += boxH) 
-		{ 
+		for (float y = -box.getExtents().y; y < boxH; y += boxH)
+		{
 			// position in worldspace
-			vec2 p = box.getPosition() + x*box.m_localX + y*box.m_localY; 
-			
+			vec2 p = box.getPosition() + x * box.m_localX + y * box.m_localY;
+
 			// position in our box's space
-			vec2 p0( dot(p - m_position, m_localX), dot(p - m_position, m_localY) );
+			vec2 p0(dot(p - m_position, m_localX), dot(p - m_position, m_localY));
+
+			float w2 = m_extents.x, h2 = m_extents.y;
+
+			if (p0.y < h2 && p0.y > -h2)
+			{
+				if (p0.x > 0 && p0.x < w2)
+				{
+					numContacts++;
+					contact += m_position + w2 * m_localX + p0.y * m_localY;
+					edgeNormal = m_localX;
+					penetration = w2 - p0.x;
+				}
+				if (p0.x < 0 && p0.x > -w2)
+				{
+					numContacts++;
+					contact += m_position - w2 * m_localX + p0.y * m_localY;
+					edgeNormal = -m_localX;
+					penetration = w2 + p0.x;
+				}
+			}
+			if (p0.x < w2 && p0.x > -w2)
+			{
+				if (p0.y > 0 && p0.y < h2)
+				{
+					numContacts++;
+					contact += m_position + p0.x * m_localX + h2 * m_localY;
+					float pen0 = h2 - p0.y;
+					if (pen0 < penetration || penetration == 0)
+					{
+						penetration = pen0;
+						edgeNormal = m_localY;
+					}
+				}
+				if (p0.y < 0 && p0.y > -h2)
+				{
+					numContacts++;
+					contact += m_position + p0.x * m_localX - h2 * m_localY;
+					float pen0 = h2 + p0.y;
+					if (pen0 < penetration || penetration == 0)
+					{
+						penetration = pen0;
+						edgeNormal = -m_localY;
+					}
+				}
+			}
+		}
+	}
 			
-			if (first || p0.x < minX)
+	contactForce = penetration * edgeNormal;
+	return (penetration != 0);
+	
+
+			/*if (first || p0.x < minX)
 				minX = p0.x; 
 			
 			if (first || p0.x > maxX) 
@@ -125,9 +174,11 @@ bool Box::checkBoxCorners(Box& box, vec2& contact, int& numContacts, float &pen,
 	contact += m_position + (localContact.x*m_localX + localContact.y*m_localY) / (float)numLocalContacts; 
 	numContacts++; 
 	float pen0 = m_extents.x - minX; 
+	
 	if (pen0 > 0 && (pen0 < pen || pen == 0)) 
 	{ 
-		edgeNormal = m_localX; pen = pen0; 
+		edgeNormal = m_localX; 
+		pen = pen0; 
 		res = true; 
 	} 
 	
@@ -157,5 +208,5 @@ bool Box::checkBoxCorners(Box& box, vec2& contact, int& numContacts, float &pen,
 		res = true; 
 	} 
 	
-	return res;
+	return res;*/
 }

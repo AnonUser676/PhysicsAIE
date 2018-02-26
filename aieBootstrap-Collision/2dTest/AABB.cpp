@@ -14,6 +14,7 @@ AABB::AABB(vec2 position, float length, float height, vec2 velocity, float mass,
 	m_angularDrag = angularDrag;
 	m_linearDrag = linearDrag;
 	m_elasticity = elasticity;
+	setKinematic(false);
 }
 
 AABB::AABB(vec2 position, float inclination, float speed, float mass, float length, float height, float linearDrag, float angularDrag, float elasticity, vec4 color) :AABB(position, length, height, vec2(cosf(inclination), sinf(inclination))*speed, mass, linearDrag, angularDrag, elasticity, color)

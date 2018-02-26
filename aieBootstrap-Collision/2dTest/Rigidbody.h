@@ -17,12 +17,14 @@ public:
 	void setVelocity(vec2 velocity) { m_velocity = velocity; }
 	void resolveCollision(Rigidbody* actor2, vec2 contact, vec2* collisionNormal = nullptr);
 	void setPos(vec2 position) { m_position = position; }
+	void setKinematic(bool state) { m_isKinematic = state; }
+	bool isKinematic() { return m_isKinematic; }
 	//virtual bool checkCollision(PhysicsObject* pOther) = 0;
 
 	vec2 getPosition() { return m_position; }
 	float getRotation() { return m_rotation; }
 	vec2 getVelocity() { return m_velocity; }
-	float getMass() { return m_mass; }
+	float getMass() { return (m_isKinematic) ? INT_MAX : m_mass; }
 	float getLinearDrag() { return m_linearDrag; }
 	float getAngularDrag() { return m_angularDrag; }
 	float getAngularVelocity() { return m_angularVelocity; }
@@ -39,5 +41,6 @@ protected:
 	float m_angularVelocity;
 	float m_elasticity;
 	float m_moment;
+	bool m_isKinematic;
 };
 
