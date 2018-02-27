@@ -441,9 +441,9 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 
 			float mass0 = 1.0f / (1.0f / box->getMass() + (r*r) / box->getMoment());
 
-			//position -= boxOverlap * plane->getNormal();
+			position -= boxOverlap * plane->getNormal();
 
-			//box->setPos(position);
+			box->setPos(position);
 			box->applyForce(acceleration * mass0, localContact);
 
 			//box->setPos(box->getPosition() - plane->getNormal() * penetration);
@@ -540,11 +540,14 @@ bool PhysicsScene::box2Sphere(PhysicsObject* obj1, PhysicsObject* obj2)
 				box->setPos(box->getPosition() + penVec * 0.5f);
 				sphere->setPos(sphere->getPosition() - penVec * 0.05f);
 			}
-			else
+			if (box->isKinematic())
+			{
+				box->resolveCollision(sphere, contact, direction);
+			}
+			if (sphere->isKinematic())
 			{
 				sphere->setPos(sphere->getPosition() - penVec);
 			}
-			box->resolveCollision(sphere, contact, direction);
 		}
 		delete direction;
 	}

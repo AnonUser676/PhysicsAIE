@@ -36,12 +36,27 @@ public:
 	Box* objectBox1;
 	Box* objectBox2;
 
+	vector<Sphere*> circle;
+	AABB* aabb;
+	Box* boX;
+
 protected:
 
 	Renderer2D*	m_2dRenderer;
 	Font*			m_font;
 	PhysicsScene*	m_physicsScene;
 	setupContinuousDemo*  m_ContinousDemo;
-	
 	float Timer;
+	float gravity;
+	float SpherePosX;
+	float SpherePosY;
+	int SphereVelX;
+	int SphereVelY;
+	float SphereMass;
+	float Radius;
+	float SphereLinearDrag;
+	float SphereElasticity;
+	bool  sphereStatic;
+	vec4 SphereColor;
+	int circleCounter;
 };

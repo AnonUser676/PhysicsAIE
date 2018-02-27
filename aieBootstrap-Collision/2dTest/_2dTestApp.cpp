@@ -8,6 +8,7 @@
 #include <gl_core_4_4.h>
 #include <imgui.h>
 
+//using namespace ImGui;
 
 _2dTestApp::_2dTestApp() {
 	
@@ -64,36 +65,48 @@ bool _2dTestApp::startup() {
 	//ball2->applyForce(vec2(30, 0));
 
 	
-	wall = new Plane(vec2 (0,1),-40);
+	wall = new Plane(vec2 (0,1),-200);
 	wall2 = new Plane(vec2(1, 1), -40);
-	wall3 = new Plane(vec2(1, 1), -50);
-	wall4 = new Plane(vec2(-1, 1), -50);
-	wall5 = new Plane(vec2(0, 1), -80);
-	objectBox1 = new Box(vec2(10, 0), 5, 5, vec2(0, 0), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
-	objectBox2 = new Box(vec2(-50, 0), 10, 16, vec2(0, 5.0f), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
+	wall3 = new Plane(vec2(1, 1), -200);
+	wall4 = new Plane(vec2(-1, 1), -200);
+	wall5 = new Plane(vec2(0, 1), -200);
+	objectBox1 = new Box(vec2(10, 30), 35, 35, vec2(0, 0), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
+	objectBox2 = new Box(vec2(10, -40), 50, 36, vec2(0, 5.0f), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
 	ball1 = new Sphere(vec2(-25,25),vec2(0,0),1.0f,3.0f, 0.5f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
 	ball2 = new Sphere(vec2(-25, -10), vec2(0, 0), 1.0f, 3.0f, 0.3f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
 	//rocket = new Sphere(vec2(0, 50), vec2(0, -5), 100, 8, vec4(0, 1, 1, 1));
-	UFO = new Sphere(vec2(10, 50), vec2(0,0), 0.5f, 10.0f, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
+	UFO = new Sphere(vec2(10, 90), vec2(0,0), 0.5f, 10.0f, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
 	square = new AABB(vec2(-50, 40), 5, 15, vec2(20, 10), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 1, 1));
 	box = new AABB(vec2(40, 40), 5, 5, vec2(0, 0), 100.0f, 0.1f, 0.1f, 0.99f, vec4(1, 0.32f, 1, 1));
 	//m_physicsScene->addActor(rocket);
-	//m_physicsScene->addActor(ball1);
-	//m_physicsScene->addActor(ball2);
-	//m_physicsScene->addActor(objectBox1);
-	//m_physicsScene->addActor(objectBox2);
+	m_physicsScene->addActor(ball1);
+	m_physicsScene->addActor(ball2);
+	m_physicsScene->addActor(objectBox1);
+	m_physicsScene->addActor(objectBox2);
 	m_physicsScene->addActor(wall);
 	//m_physicsScene->addActor(wall2);
 	m_physicsScene->addActor(wall3);
 	m_physicsScene->addActor(wall4);
 	//m_physicsScene->addActor(wall5);
-	//m_physicsScene->addActor(UFO);
+	m_physicsScene->addActor(UFO);
 	m_physicsScene->addActor(square);
 	m_physicsScene->addActor(box);
 
 	UFO->setKinematic(true);
 
+	gravity = m_physicsScene->getGravity().y;
 
+	SpherePosX = 0;
+	SpherePosY = 0;
+	SphereVelX = 0;
+	SphereVelY = 0;
+	SphereMass = 1;
+	Radius = 1;
+	SphereLinearDrag = 0.01f;
+	SphereElasticity = 0.01;
+	sphereStatic = false;
+	SphereColor = vec4(0,0,0,1);
+	circleCounter = 0;
 
 	return true;
 }
@@ -106,9 +119,11 @@ void _2dTestApp::shutdown()
 
 void _2dTestApp::update(float deltaTime) {
 
-	//imgui();
+	
 	// input example
 	Input* input = Input::getInstance();
+
+	imgui();
 
 	Gizmos::clear();
 	
@@ -155,7 +170,7 @@ void _2dTestApp::draw() {
 
 	// draw your stuff here!
 	static float aspectRatio = 16 / 9.f;
-	Gizmos::draw2D(glm::ortho<float>(-100, 100, -100 / aspectRatio, 100 / aspectRatio, -1.0f, 1.0f));
+	Gizmos::draw2D(glm::ortho<float>(-500, 500, -500 / aspectRatio, 500 / aspectRatio, -1.0f, 1.0f));
 		
 	// output some text, uses the last used colour
 	m_2dRenderer->drawText(m_font, "Press ESC to quit", 0, 0);
@@ -167,10 +182,51 @@ void _2dTestApp::draw() {
 void _2dTestApp::imgui()
 {
 	vec4 m_clearColor(1, 1, 1, 1);
+	
+	ImGui::Begin("Physics Manipulator");
 
-	ImGui::Begin("Color");
-	glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, 1);
-	ImGui::ColorEdit3("clear color", value_ptr(m_clearColor));
+	ImGui::SliderFloat("Gravity", &gravity, -400.0f, 10.0f);
+	if (ImGui::Button("Set Gravity"))
+	{
+		m_physicsScene->setGravity(vec2(0, gravity));
+	}
+	ImGui::Separator();
+
+	ImGui::Spacing();
+	
+	if (ImGui::CollapsingHeader("Sphere", 11.0f))
+	{
+		ImGui::SliderFloat("Sphere Position X", &SpherePosX, -600.0f, 600.0f);
+		ImGui::SliderFloat("Sphere Position Y", &SpherePosY, -600.0f, 600.0f);
+		ImGui::InputInt("Sphere Velocity x", &SphereVelX);
+		ImGui::InputInt("Sphere Velocity y", &SphereVelY);
+		ImGui::SliderFloat("Sphere Mass", &SphereMass, 0.01f, 10000.0f);
+		ImGui::SliderFloat("SphereRadius", &Radius, 0.1f, 1000.0f);
+		ImGui::InputFloat("Sphere Linear Drag", &SphereLinearDrag, 0.01f);
+		ImGui::InputFloat("Sphere Elasticity", &SphereElasticity);
+		ImGui::Checkbox("is Sphere Static", &sphereStatic);
+
+		if (ImGui::Button("Create Sphere"))
+		{
+			circle.push_back(new Sphere(vec2(SpherePosX, SpherePosY), vec2(SphereVelX, SphereVelY), SphereMass, Radius, SphereLinearDrag, 0.3, SphereElasticity, vec4(rand() % 100 * 0.01f, rand() % 100 * 0.01f, rand() % 100 * 0.01f, 1)));
+			m_physicsScene->addActor(circle[circleCounter]);
+			circle[circleCounter]->setKinematic(sphereStatic);
+			circleCounter = circle.size();
+		}
+
+		if (ImGui::Button("Destroy Sphere"))
+		{
+			if (circleCounter > 0)
+			{
+				m_physicsScene->removeActor(circle[circleCounter - 1]);
+				circleCounter--;
+			}
+		}
+	}
+	ImGui::Separator();
+	//ImGui::CollapsingHeader()
+	//glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, 1);
+	//ImGui::ColorEdit3("clear color", value_ptr(m_clearColor));
 
 	ImGui::End();
 }

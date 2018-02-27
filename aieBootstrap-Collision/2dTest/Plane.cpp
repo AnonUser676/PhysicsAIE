@@ -24,7 +24,7 @@ void Plane::fixedUpdate(vec2 gravity, float timeStep)
 
 void Plane::makeGizmo()
 {
-	float lineSegmentLength = 300;
+	float lineSegmentLength = 30000;
 	vec2 centerPoint = m_normal * m_distancetoOrigin;
 	vec2 parallel(m_normal.y, -m_normal.x);
 	float color1 = 0;
