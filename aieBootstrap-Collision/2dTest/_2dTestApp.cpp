@@ -25,75 +25,29 @@ bool _2dTestApp::startup() {
 
 	m_2dRenderer = new aie::Renderer2D();
 
-	// TODO: remember to change this when redistributing a build!
-	// the following path would be used instead: "./font/consolas.ttf"
 	m_font = new aie::Font("../bin/font/consolas.ttf", 32);
 
 	m_physicsScene = new PhysicsScene();
 	m_physicsScene->setGravity(vec2(0.0f, -10.0f));
 	m_physicsScene->setTimeStep(0.005f);
 
-	/*m_ContinousDemo = new setupContinuousDemo();
-
-	m_ContinousDemo->setUpDemo(vec2(-30, 0), 45.0f, 35.0f, -10.0f);
-	
-	float radius = 1.0f;
-	float speed = 35.0f;
-	vec2 startPos(-30, 0);
-	float inclination = 45.0f;
-		
-	Sphere* projectile;
-	projectile = new Sphere(startPos, inclination, speed, 10.0f, radius, vec4(1, 0, 0, 1));
-
-	m_physicsScene->addActor(projectile);
-
-*/
 	Timer = 0;
-	
-	
-	//Sphere* ball;
-	//ball = new Sphere(vec2(-14, 0), vec2(25,0), 300.0f, 4, vec4(1, 1, 1, 1));
-	//
-	//Sphere* ball2;
-	//ball2 = new Sphere(vec2(14, 0), vec2(-25, 0), 300.0f, 4, vec4(0.3f, 0.3f, 0.3f, 1));
-	//
-	//m_physicsScene->addActor(ball);
-	//m_physicsScene->addActor(ball2);
-
-	////ball->applyForceToActor(ball2, vec2(2, 0));
-	//ball->applyForce(vec2(30, 0));
-	//ball2->applyForce(vec2(30, 0));
-
 	
 	wall = new Plane(vec2 (0,1),-30);
 	wall2 = new Plane(vec2(1, 1), -40);
 	wall3 = new Plane(vec2(1, 1), -30);
 	wall4 = new Plane(vec2(-1, 1), -30);
 	wall5 = new Plane(vec2(0, 1), -30);
-	objectBox1 = new Box(vec2(10, 30), 35, 35, vec2(0, 0), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
-	objectBox2 = new Box(vec2(10, -40), 50, 36, vec2(0, 5.0f), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
-	ball1 = new Sphere(vec2(-25,25),vec2(0,0),1.0f,3.0f, 0.5f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
-	ball2 = new Sphere(vec2(-25, -10), vec2(0, 0), 1.0f, 3.0f, 0.3f, 0.3f, 0.5f, vec4(0, 1, 1, 1));
-	//rocket = new Sphere(vec2(0, 50), vec2(0, -5), 100, 8, vec4(0, 1, 1, 1));
-	UFO = new Sphere(vec2(10, 90), vec2(0,0), 0.5f, 10.0f, 0.3f, 0.3f, 0.5f, vec4(1, 1, 0, 1));
-	square = new AABB(vec2(10, 0), 5, 15, vec2(-10, 0), 10.0f, 0.01f, 0.1f, 0.01f, vec4(0, 1, 1, 1));
-	box = new AABB(vec2(-10, 40), 5, 5, vec2(0, 0), 100.0f, 0.1f, 0.1f, 0.01f, vec4(1, 0.32f, 1, 1));
-	//m_physicsScene->addActor(rocket);
-	//m_physicsScene->addActor(ball1);
-	//m_physicsScene->addActor(ball2);
-	//m_physicsScene->addActor(objectBox1);
-	//m_physicsScene->addActor(objectBox2);
+	objectBox1 = new Box(vec2(10, 30), 5, 15, vec2(0, 0), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
+	objectBox2 = new Box(vec2(10, -40), 5, 6, vec2(0, 5.0f), 10.0f, 0.01f, 0.1f, 0.99f, vec4(0, 1, 0, 1));
+	m_physicsScene->addActor(objectBox1);
+	m_physicsScene->addActor(objectBox2);
 	m_physicsScene->addActor(wall);
 	//m_physicsScene->addActor(wall2);
 	m_physicsScene->addActor(wall3);
 	m_physicsScene->addActor(wall4);
 	//m_physicsScene->addActor(wall5);
-	//m_physicsScene->addActor(UFO);
-	m_physicsScene->addActor(square);
-	m_physicsScene->addActor(box);
-
-	UFO->setKinematic(true);
-
+	
 	gravity = m_physicsScene->getGravity().y;
 
 	SpherePosX = 0;
@@ -115,6 +69,23 @@ void _2dTestApp::shutdown()
 {
 	delete m_font;
 	delete m_2dRenderer;
+	delete wall;
+	delete wall2;
+	delete wall3;
+	delete wall4;
+	delete wall5;
+	delete objectBox1;
+	delete objectBox2;
+	Gizmos::destroy();
+
+	if (circle.size() > -1)
+	{
+		for (int i = circle.size(); 0 <= circle.size(); i--)
+		{
+			delete circle[i - 1];
+		}
+	}
+
 }
 
 void _2dTestApp::update(float deltaTime) {
@@ -130,24 +101,7 @@ void _2dTestApp::update(float deltaTime) {
 	Timer += deltaTime;
 	
 	if (Timer > 0.1f)
-	{
-		/*if (input->isKeyDown(INPUT_KEY_SPACE) && rocket->getMass() > 0.0f)
-		{
-			Sphere* gas;
-			gas = new Sphere((rocket->getPosition() - vec2(0, 12.0f)), vec2(0, 0.0f), 1.0f, 3, vec4(0.38f, 0.12f, 0.5f, 1));
-			m_physicsScene->addActor(gas);
-			rocket->setMass(rocket->getMass() - gas->getMass());
-
-			gas->applyForceToActor(rocket, vec2(0, 100.0f));
-		}*/
 		Timer = 0;
-	}
-
-	//if (input->isKeyDown(INPUT_KEY_LEFT))
-	//	rocket->applyForce(vec2(-100.f, 0));
-	//
-	//if (input->isKeyDown(INPUT_KEY_RIGHT))
-	//	rocket->applyForce(vec2(100.f, 0));
 
 	cout << m_physicsScene->actorCounter() << endl;
 	
@@ -219,14 +173,12 @@ void _2dTestApp::imgui()
 			if (circleCounter > 0)
 			{
 				m_physicsScene->removeActor(circle[circleCounter - 1]);
+				delete circle[circleCounter - 1];
 				circleCounter--;
 			}
 		}
 	}
 	ImGui::Separator();
-	//ImGui::CollapsingHeader()
-	//glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, 1);
-	//ImGui::ColorEdit3("clear color", value_ptr(m_clearColor));
 
 	ImGui::End();
 }

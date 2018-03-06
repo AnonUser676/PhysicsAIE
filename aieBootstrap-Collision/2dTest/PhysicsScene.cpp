@@ -48,8 +48,6 @@ void PhysicsScene::removeActor(PhysicsObject* actor)
 
 void PhysicsScene::update(float dt)
 {
-	static list<PhysicsObject*> dirty;
-
 	static float accumulatedTime = 0.0f;
 	accumulatedTime += dt;
 
@@ -60,26 +58,6 @@ void PhysicsScene::update(float dt)
 			pActor->fixedUpdate(m_gravity, m_timeStep);
 		}
 		accumulatedTime -= m_timeStep;
-
-		/*for (auto pActor : m_actors)
-		{
-			for (auto pOthers : m_actors)
-			{
-				if (pActor == pOthers)
-					continue;
-				if (find(dirty.begin(), dirty.end(), pActor) != dirty.end() && find(dirty.begin(), dirty.end(), pOthers) != dirty.end())
-					continue;
-
-				Rigidbody* pRigid = dynamic_cast<Rigidbody*>(pActor);
-				if (pRigid ->checkCollision(pOthers) == true)
-				{
-					pRigid->applyForceToActor(dynamic_cast<Rigidbody*>(pOthers), pRigid->getVelocity()*pRigid->getMass());
-					dirty.push_back(pRigid);
-					dirty.push_back(pOthers);
-				}
-			}
-		}*/
-		dirty.clear();
 	}
 	checkCollision();
 }
@@ -181,6 +159,7 @@ bool PhysicsScene::sphere2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 			collisionNormal *= -1;
 			sphereToPlane *= -1;
 		}
+
 		sphere->getRadius();
 		
 		float intersection = sphere->getRadius() - sphereToPlane;
@@ -243,7 +222,7 @@ bool PhysicsScene::sphere2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 
 			float totalMass = sphere->getMass() + aabb->getMass();
 
-			vec2 spherePos = sphere->getPosition() - normalize(normal) * (sphere->getMass() / totalMass) * overlapCircle;
+			vec2 spherePos = sphere->getPosition() + normalize(normal) * (sphere->getMass() / totalMass) * overlapCircle;
 			vec2 aabbPos = aabb->getPosition() - normalize(normal) * (aabb->getMass() / totalMass) * overlap;
 
 			//sphere->setPos(spherePos);
@@ -337,12 +316,10 @@ bool PhysicsScene::AABB2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 
 		vec2 contact(0, 0);
 		vec2 contact2(0, 0);
-
-
+		
 		contact = clamp(aabb1->getPosition(), aabb2ColliderMin, aabb2ColliderMax);
 		contact2 = clamp(aabb2->getPosition(), aabb1ColliderMin, aabb1ColliderMax);
-
-
+		
 		Gizmos::add2DCircle(contact, 1, 12, vec4(0, 1, 0, 1));
 		Gizmos::add2DCircle(contact2, 1, 12, vec4(1, 0, 0, 1));
 
@@ -351,20 +328,25 @@ bool PhysicsScene::AABB2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 			  aabb1ColliderMax.y < aabb2ColliderMin.y ||
 			  aabb2ColliderMax.y < aabb1ColliderMin.y))
 		{
-			float AABBOverlap1 = length(normalize(normal) - contact * 0.5f);
-			float AABBOverlap2 = length(normalize(normal) - contact2 * 0.5f);
+			vec2 distance = aabb1->getPosition() - contact;
+			vec2 distance2 = aabb2->getPosition() - contact;
+			
+			float Length = length(distance);
+			float Length2 = length(distance2);
 
+			float AABBOverlap = length(contact - aabb2->getPosition()) - Length;
 
 			float totalMass = aabb1->getMass() + aabb2->getMass();
 
-			vec2 aabb1Pos = aabb1->getPosition() + contact * (aabb1->getMass() / totalMass) * AABBOverlap1;
-			vec2 aabb2Pos = aabb2->getPosition() - contact * (aabb2->getMass() / totalMass) * AABBOverlap2;
+			vec2 aabb1Pos = aabb1->getPosition() + normalize(contact) * (aabb1->getMass()/totalMass) * AABBOverlap * 0.05f;
+			vec2 aabb2Pos = aabb2->getPosition() - normalize(contact) * (aabb2->getMass() / totalMass) * AABBOverlap * 0.05f;
 
 			aabb1->setPos(aabb1Pos);
 			aabb2->setPos(aabb2Pos);
 
 			aabb1->resolveCollision(aabb2,contact);
 			aabb2->resolveCollision(aabb1, contact2);
+
 			cout << "Collided aabb" << endl;
 			return true;
 		}
@@ -390,9 +372,9 @@ bool PhysicsScene::box2Plane(PhysicsObject* obj1, PhysicsObject* obj2)
 		vec2 position = box->getPosition();
 		float boxOverlap = 0.0f;
 
-		for (float x = -box->getExtents().x; x < box->getLength(); x += box->getLength())
+		for (float x = -box->getExtents().x; x < box->getLength()*0.5f; x += box->getLength()*0.5f)
 		{
-			for (float y = -box->getExtents().y; y < box->getHeight(); y += box->getHeight())
+			for (float y = -box->getExtents().y; y < box->getHeight()*0.5f; y += box->getHeight()*0.5f)
 			{
 				vec2 p = box->getPosition() + box->getLocalX() + y * box->getLocalY();
 

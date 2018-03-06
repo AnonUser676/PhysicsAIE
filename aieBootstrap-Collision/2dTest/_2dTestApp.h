@@ -3,7 +3,6 @@
 #include "Application.h"
 #include "Renderer2D.h"
 #include "PhysicsScene.h"
-#include "setupContinuousDemo.h"
 
 using namespace aie;
 using namespace std;
@@ -22,13 +21,7 @@ public:
 	virtual void draw();
 	virtual void imgui();
 
-	Sphere* rocket;
-	Sphere* ball1;
-	Sphere* ball2;
 	Plane* wall;
-	Sphere* UFO;
-	AABB* square;
-	AABB* box;
 	Plane* wall2;
 	Plane* wall3;
 	Plane* wall4;
@@ -45,7 +38,6 @@ protected:
 	Renderer2D*	m_2dRenderer;
 	Font*			m_font;
 	PhysicsScene*	m_physicsScene;
-	setupContinuousDemo*  m_ContinousDemo;
 	float Timer;
 	float gravity;
 	float SpherePosX;
