@@ -30,7 +30,7 @@ public:
 	Box* objectBox2;
 
 	vector<Sphere*> circle;
-	AABB* aabb;
+	vector<AABB*> aabb;
 	Box* boX;
 
 protected:
@@ -50,5 +50,20 @@ protected:
 	float SphereElasticity;
 	bool  sphereStatic;
 	vec4 SphereColor;
+	
+	float AABBPosX;
+	float AABBPosY;
+	int AABBVelX;
+	int AABBVelY;
+	float AABBMass;
+	float AABBLength;
+	float AABBHeight;
+	float AABBLinearDrag;
+	float AABBElasticity;
+	bool  AABBStatic;
+	vec4 AABBColor;
+
 	int circleCounter;
+	int aabbCounter;
+
 };

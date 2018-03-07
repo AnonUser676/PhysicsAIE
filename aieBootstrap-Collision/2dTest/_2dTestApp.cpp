@@ -62,6 +62,20 @@ bool _2dTestApp::startup() {
 	SphereColor = vec4(0,0,0,1);
 	circleCounter = 0;
 
+	AABBPosX = 0.0f;
+	AABBPosY = 0.0f;
+	AABBVelX = 0.0f;
+	AABBVelY = 0.0f;
+	AABBMass = 1.0f;
+	AABBLength = 1.0f;
+	AABBHeight = 1.0f;
+	AABBLinearDrag = 0.01f;
+	AABBElasticity = 0.01f;
+	AABBStatic = false;
+	AABBColor = vec4(0, 0, 0, 1);
+
+	aabbCounter = 0;
+
 	return true;
 }
 
@@ -78,11 +92,21 @@ void _2dTestApp::shutdown()
 	delete objectBox2;
 	Gizmos::destroy();
 
-	if (circle.size() > -1)
+	if (circle.size() > 0)
 	{
-		for (int i = circle.size(); 0 <= circle.size(); i--)
+		while(circle.size() > 0)
 		{
-			delete circle[i - 1];
+			m_physicsScene->removeActor(circle[circle.size()]);
+			delete circle[circle.size()];
+		}
+	}
+
+	if (aabb.size() > 0)
+	{
+		for (int i = 0; i < aabb.size(); i--)
+		{
+			//m_physicsScene->removeActor(aabb[i]);
+			//delete aabb[i];
 		}
 	}
 
@@ -155,7 +179,7 @@ void _2dTestApp::imgui()
 		ImGui::InputInt("Sphere Velocity x", &SphereVelX);
 		ImGui::InputInt("Sphere Velocity y", &SphereVelY);
 		ImGui::SliderFloat("Sphere Mass", &SphereMass, 0.01f, 10000.0f);
-		ImGui::SliderFloat("SphereRadius", &Radius, 0.1f, 1000.0f);
+		ImGui::SliderFloat("Sphere Radius", &Radius, 0.1f, 1000.0f);
 		ImGui::InputFloat("Sphere Linear Drag", &SphereLinearDrag, 0.01f);
 		ImGui::InputFloat("Sphere Elasticity", &SphereElasticity);
 		ImGui::Checkbox("is Sphere Static", &sphereStatic);
@@ -175,6 +199,42 @@ void _2dTestApp::imgui()
 				m_physicsScene->removeActor(circle[circleCounter - 1]);
 				delete circle[circleCounter - 1];
 				circleCounter--;
+			}
+		}
+	}
+	ImGui::Separator();
+	ImGui::Separator();
+
+	ImGui::Spacing();
+
+	if (ImGui::CollapsingHeader("AABB Box", 11.0f))
+	{
+		ImGui::SliderFloat("AABB Position X", &AABBPosX, -600.0f, 600.0f);
+		ImGui::SliderFloat("AABB Position Y", &AABBPosY, -600.0f, 600.0f);
+		ImGui::InputInt("AABB Velocity x", &AABBVelX);
+		ImGui::InputInt("AABB Velocity y", &AABBVelY);
+		ImGui::SliderFloat("AABB Mass", &AABBMass, 0.01f, 10000.0f);
+		ImGui::SliderFloat("AABB Length", &AABBLength, 0.1f, 1000.0f);
+		ImGui::SliderFloat("AABB Height", &AABBHeight, 0.1f, 1000.0f);
+		ImGui::InputFloat("AABB Linear Drag", &AABBLinearDrag, 0.01f);
+		ImGui::InputFloat("AABB Elasticity", &AABBElasticity);
+		ImGui::Checkbox("is AABB Static", &AABBStatic);
+
+		if (ImGui::Button("Create AABB"))
+		{
+			aabb.push_back(new AABB(vec2(AABBPosX, AABBPosY), AABBLength, AABBHeight, vec2(AABBVelX, AABBVelY), AABBMass, AABBLinearDrag, 0.3, AABBElasticity, vec4(rand() % 100 * 0.01f, rand() % 100 * 0.01f, rand() % 100 * 0.01f, 1)));
+			m_physicsScene->addActor(aabb[aabbCounter]);
+			aabb[aabbCounter]->setKinematic(AABBStatic);
+			aabbCounter = aabb.size();
+		}
+
+		if (ImGui::Button("Destroy AABB"))
+		{
+			if (aabbCounter > 0)
+			{
+				m_physicsScene->removeActor(aabb[aabbCounter - 1]);
+				delete aabb[aabbCounter - 1];
+				aabbCounter--;
 			}
 		}
 	}

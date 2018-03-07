@@ -204,8 +204,7 @@ bool PhysicsScene::sphere2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 				
 		closest = clamp(sphere->getPosition(), min_extent, max_extent);
 
-		Gizmos::add2DCircle(closest, 1, 12, vec4(1, 1, 1, 1));
-		//float distance = closest.length() * closest.length();
+		
 		vec2 distance = closest - sphere->getPosition();
 
 		float Length = length(distance);
@@ -319,9 +318,6 @@ bool PhysicsScene::AABB2AABB(PhysicsObject* obj1, PhysicsObject* obj2)
 		
 		contact = clamp(aabb1->getPosition(), aabb2ColliderMin, aabb2ColliderMax);
 		contact2 = clamp(aabb2->getPosition(), aabb1ColliderMin, aabb1ColliderMax);
-		
-		Gizmos::add2DCircle(contact, 1, 12, vec4(0, 1, 0, 1));
-		Gizmos::add2DCircle(contact2, 1, 12, vec4(1, 0, 0, 1));
 
 		if (!(aabb1ColliderMax.x < aabb2ColliderMin.x ||
 			  aabb2ColliderMax.x < aabb1ColliderMin.x ||
